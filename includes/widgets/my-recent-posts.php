@@ -8,6 +8,7 @@ class MY_PostWidget extends WP_Widget {
 
 	/** @see WP_Widget::widget */
 	function widget($args, $instance) {
+		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'category' => '', 'post_format' => '', 'linktext' => '', 'linkurl' => '', 'count' => '', 'sort_by' => '', 'excerpt_count' => '' ) );
 		extract( $args );
 		$title         = apply_filters('widget_title', empty($instance['title']) ? '' : $instance['title'], $instance);
 		$category      = apply_filters('widget_category', $instance['category']);

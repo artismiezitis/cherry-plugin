@@ -74,8 +74,8 @@ if (!function_exists('posts_list_shortcode')) {
 			$thumb_x = 620;
 			$thumb_y = 300;
 		} else {
-			$thumb_x = $_wp_additional_image_sizes['post-thumbnail']['width'];
-			$thumb_y = $_wp_additional_image_sizes['post-thumbnail']['height'];
+			$thumb_x = $_wp_additional_image_sizes['post-thumbnail']['width'] ?? get_option( 'thumbnail_size_w', 150 );
+			$thumb_y = $_wp_additional_image_sizes['post-thumbnail']['height'] ?? get_option( 'thumbnail_size_h', 150 );
 		}
 
 		// thumbnail class
@@ -100,7 +100,7 @@ if (!function_exists('posts_list_shortcode')) {
 			setup_postdata($post);
 			$excerpt        = get_the_excerpt();
 			$attachment_url = wp_get_attachment_image_src( get_post_thumbnail_id($post->ID), 'full' );
-			$url            = $attachment_url['0'];
+			$url            = $attachment_url[0] ?? '';
 			if (($thumb_width != '') && ($thumb_height != ''))
 				$image = aq_resize($url, $thumb_width, $thumb_height, true);
 			else

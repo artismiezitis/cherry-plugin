@@ -4,6 +4,7 @@
  */
 if ( !function_exists('tabs_shortcode') ) {
 	function tabs_shortcode( $atts, $content = null, $shortcodename = '' ) {
+		$atts = is_array( $atts ) ? $atts : array();
 		if ( !array_key_exists('direction', $atts) ) {
 			$direct = array(
 				'direction' => 'top'
@@ -17,7 +18,8 @@ if ( !function_exists('tabs_shortcode') ) {
 				$id       = rand(); // Create unique ID for this tab set
 				$tab_menu = array();
 				$tab_menu = $atts;
-				array_shift( $tab_menu );
+				unset( $tab_menu['direction'] );
+				$tab_menu = array_filter( $tab_menu, function ( $key ) { return preg_match( '/^tab[1-9][0-9]*$/', (string) $key ); }, ARRAY_FILTER_USE_KEY );
 				$num_tabs = count( $tab_menu );
 
 				for ( $i = 1; $i <= $num_tabs; $i++ ) {

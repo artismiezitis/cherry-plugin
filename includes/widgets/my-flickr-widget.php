@@ -8,6 +8,7 @@ class MY_FlickrWidget extends WP_Widget {
 
 	/** @see WP_Widget::widget */
 	function widget($args, $instance) {
+		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'flickr_id' => '', 'image_amount' => '4', 'linktext' => '' ) );
 		extract( $args );
 		$title     = apply_filters('widget_title', $instance['title']);
 		$flickr_id = apply_filters('flickr_id', $instance['flickr_id']);

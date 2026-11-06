@@ -37,7 +37,7 @@ if (!function_exists('shortcode_post_cycle')) {
 		}
 
 		$output = '<script type="text/javascript">
-						jQuery(window).load(function() {
+						jQuery(window).on("load", function() {
 							jQuery("#flexslider_'.$random.'").flexslider({
 								animation: "'.$effect.'",
 								smoothHeight : true,
@@ -87,7 +87,7 @@ if (!function_exists('shortcode_post_cycle')) {
 				setup_postdata($post);
 				$excerpt        = get_the_excerpt();
 				$attachment_url = wp_get_attachment_image_src( get_post_thumbnail_id($post->ID), 'full' );
-				$url            = $attachment_url['0'];
+				$url            = $attachment_url[0] ?? '';
 				$image          = aq_resize($url, $thumb_width, $thumb_height, true);
 
 				$output .= '<li class="list-item-'.$count.'">';

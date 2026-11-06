@@ -1,0 +1,38 @@
+<?php
+/** Seed only the disposable installation used by tests/http.py. */
+if ( PHP_SAPI !== 'cli' || ! getenv( 'CHERRY_TEST_WP_ROOT' ) ) exit( 1 );
+define( 'WP_ADMIN', true );
+require getenv( 'CHERRY_TEST_WP_ROOT' ) . '/wp-load.php';
+require_once ABSPATH . 'wp-admin/includes/file.php';
+require_once ABSPATH . 'wp-admin/includes/image.php';
+wp_set_current_user( 1 );
+switch_theme( 'twentytwentyone' );
+$uploads = wp_upload_dir();
+$image = imagecreatetruecolor( 640, 480 );
+$color = imagecolorallocate( $image, 66, 120, 140 );
+imagefill( $image, 0, 0, $color );
+$file = $uploads['path'] . '/cherry-fixture.png';
+imagepng( $image, $file );
+$fixture_attachment_id = wp_insert_attachment( array( 'post_title' => 'Cherry test image', 'post_mime_type' => 'image/png', 'post_status' => 'inherit', 'guid' => $uploads['url'] . '/cherry-fixture.png' ), $file );
+wp_update_attachment_metadata( $fixture_attachment_id, wp_generate_attachment_metadata( $fixture_attachment_id, $file ) );
+$category = wp_insert_term( 'Cherry category', 'category', array( 'slug' => 'cherry-category' ) );
+$category_id = is_wp_error( $category ) ? $category->get_error_data( 'term_exists' ) : $category['term_id'];
+$fixture_post_id = wp_insert_post( array( 'post_title' => 'Cherry fixture article', 'post_content' => 'Compatibility article with an image.', 'post_status' => 'publish', 'post_category' => array( $category_id ), 'tags_input' => array( 'cherry-tag' ) ) );
+set_post_thumbnail( $fixture_post_id, $fixture_attachment_id );
+wp_insert_comment( array( 'comment_post_ID' => $fixture_post_id, 'comment_author' => 'Cherry tester', 'comment_author_email' => 'tester@example.test', 'comment_content' => 'Compatibility comment', 'comment_approved' => 1 ) );
+$fixture_page_id = wp_insert_post( array( 'post_title' => 'Cherry compatibility showcase', 'post_name' => 'cherry-showcase', 'post_type' => 'page', 'post_status' => 'publish', 'post_content' => '[title_box title="Cherry compatibility"] [alert_box style="info"]PHP and WordPress compatibility[/alert_box] [progressbar value="75" type="success"] [tabs tab1="First" tab2="Second"][tab1]First content[/tab1][tab2]Second content[/tab2][/tabs] [table td1="Name" td2="Result"][td1]PHP[/td1][td2]Passed[/td2][/table] [posts_grid columns="2" rows="1" thumb_width="160" thumb_height="100"] [post_cycle num="2"] [carousel_owl posts_count="2"]' ) );
+$menu = wp_create_nav_menu( 'Header Menu' );
+if ( is_wp_error( $menu ) ) $menu = wp_get_nav_menu_object( 'Header Menu' )->term_id;
+wp_update_nav_menu_item( $menu, 0, array( 'menu-item-title' => 'Cherry showcase', 'menu-item-object' => 'page', 'menu-item-object-id' => $fixture_page_id, 'menu-item-type' => 'post_type', 'menu-item-status' => 'publish' ) );
+update_option( 'widget_my-recent-comments', array( 2 => array( 'title' => 'Test comments', 'comments_count' => 5 ), '_multiwidget' => 1 ) );
+update_option( 'sidebars_widgets', array( 'wp_inactive_widgets' => array(), 'sidebar-1' => array( 'my-recent-comments-2' ), 'array_version' => 3 ) );
+update_option( 'cherry_widget_rules_type', array( 'my-recent-comments-2' => 'all' ) );
+update_option( 'cherry_widget_rules', array( 'my-recent-comments-2' => ',homepage' ) );
+update_option( 'cherry_widget_custom_class', array( 'my-recent-comments-2' => 'cherry-fixture-widget' ) );
+update_option( 'cherry_widget_responsive', array( 'my-recent-comments-2' => 'visible-all-devices' ) );
+update_option( 'cherry_widget_users', array( 'my-recent-comments-2' => 'all' ) );
+$xml = cherry_plugin_export_xml();
+$json = cherry_plugin_export_json();
+copy( $xml, $uploads['path'] . '/sample_data.xml' );
+copy( $json, $uploads['path'] . '/widgets.json' );
+echo json_encode( array( 'xml' => basename( $xml ), 'json' => basename( $json ), 'upload_path' => $uploads['path'], 'showcase' => $fixture_page_id, 'post' => $fixture_post_id, 'attachment' => $fixture_attachment_id ) );

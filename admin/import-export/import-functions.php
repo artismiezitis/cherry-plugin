@@ -1,4 +1,11 @@
 <?php
+	/** Start the shared import session once per request. */
+	function cherry_plugin_import_session() {
+		if ( session_status() === PHP_SESSION_NONE ) {
+			session_name( 'import_xml' );
+			session_start();
+		}
+	}
 	add_action('wp_ajax_import_json', 'cherry_plugin_import_json');
 	function cherry_plugin_import_json() {
 		do_action( 'cherry_plugin_import_json' );
@@ -50,7 +57,7 @@
 		}
 
 		if(!empty($rules_data)) {
-			$new = array('widget_responsive');
+			$new = array_fill_keys( array( 'widget_rules_type', 'widget_rules', 'widget_custom_class', 'widget_responsive', 'widget_users' ), array() );
 			foreach($rules_data as $key => $value) {
 				foreach ($value as $val) {
 					$new[$key] = $val;
@@ -68,7 +75,7 @@
 			update_option($themename.'_widget_rules_type', $options_type_new);
 			update_option($themename.'_widget_rules', $options_new);
 			update_option($themename.'_widget_custom_class', $custom_class_new);
-			update_option($themename.'_widget_responsive'.$key, $responsive_new);
+			update_option($themename.'_widget_responsive', $responsive_new);
 			update_option($themename.'_widget_users', $users_new);
 		}
 		foreach ( $widget_data as $widget_title => $widget_value ) {
@@ -143,10 +150,7 @@
 		if ( !wp_verify_nonce( $nonce, 'import_ajax-nonce' ) )
 			exit ( 'instal_error');
 
-		if(session_id()!="import_xml"){
-			session_name("import_xml");
-			session_start();
-		}
+		cherry_plugin_import_session();
 
 		do_action( 'cherry_plugin_start_import' );
 
@@ -195,8 +199,9 @@
 		settings();
 
 		do_action( 'cherry_plugin_import_end' );
-		session_name("import_xml");
-		session_destroy();
+		if ( session_status() === PHP_SESSION_ACTIVE ) {
+			session_destroy();
+		}
 		exit('import_json');
 	}
 	add_action('wp_ajax_import_categories', 'cherry_plugin_import_categories');
@@ -205,10 +210,7 @@
 		if ( !wp_verify_nonce( $nonce, 'import_ajax-nonce' ) )
 			exit ( 'instal_error');
 
-		if(session_id()!="import_xml"){
-			session_name("import_xml");
-			session_start();
-		}
+		cherry_plugin_import_session();
 
 		do_action( 'cherry_plugin_import_categories' );
 
@@ -254,10 +256,7 @@
 		if ( !wp_verify_nonce( $nonce, 'import_ajax-nonce' ) )
 			exit ( 'instal_error');
 
-		if(session_id()!="import_xml"){
-			session_name("import_xml");
-			session_start();
-		}
+		cherry_plugin_import_session();
 
 		do_action( 'cherry_plugin_import_tags' );
 
@@ -297,10 +296,7 @@
 		if ( !wp_verify_nonce( $nonce, 'import_ajax-nonce' ) )
 			exit ( 'instal_error');
 
-		if(session_id()!="import_xml"){
-			session_name("import_xml");
-			session_start();
-		}
+		cherry_plugin_import_session();
 
 		do_action( 'cherry_plugin_process_terms' );
 
@@ -353,10 +349,7 @@
 		if ( !wp_verify_nonce( $nonce, 'import_ajax-nonce' ) )
 			exit ( 'instal_error');
 
-		if(session_id()!="import_xml"){
-			session_name("import_xml");
-			session_start();
-		}
+		cherry_plugin_import_session();
 
 		do_action( 'cherry_plugin_import_posts' );
 
@@ -568,10 +561,7 @@
 		if ( !wp_verify_nonce( $nonce, 'import_ajax-nonce' ) )
 			exit ( 'instal_error');
 
-		if(session_id()!="import_xml"){
-			session_name("import_xml");
-			session_start();
-		}
+		cherry_plugin_import_session();
 
 		do_action( 'cherry_plugin_import_menu_item' );
 
@@ -624,7 +614,7 @@
 		}
 
 		foreach ( $item['postmeta'] as $meta )
-			$$meta['key'] = $meta['value'];
+			${$meta['key']} = $meta['value'];
 
 		if ( 'taxonomy' == $_menu_item_type && isset( $_SESSION['processed_terms'][intval($_menu_item_object_id)] ) ) {
 			$_menu_item_object_id = $_SESSION['processed_terms'][intval($_menu_item_object_id)];
@@ -684,10 +674,7 @@
 		if ( !wp_verify_nonce( $nonce, 'import_ajax-nonce' ) )
 			exit ( 'instal_error');
 
-		if(session_id()!="import_xml"){
-			session_name("import_xml");
-			session_start();
-		}
+		cherry_plugin_import_session();
 
 		if(!empty($_SESSION['attachment_posts'])){
 			do_action( 'cherry_plugin_import_attachment' );
@@ -778,10 +765,7 @@
 		if ( !wp_verify_nonce( $nonce, 'import_ajax-nonce' ) )
 			exit ( 'instal_error');
 
-		if(session_id()!="import_xml"){
-			session_name("import_xml");
-			session_start();
-		}
+		cherry_plugin_import_session();
 		do_action( 'cherry_plugin_generate_attachment_metadata' );
 		if(!empty($_SESSION['attachment_posts'])){
 			$metadata = $_SESSION['attachment_metapost'];
@@ -801,10 +785,7 @@
 		if ( !wp_verify_nonce( $nonce, 'import_ajax-nonce' ) )
 			exit ( 'instal_error');
 
-		if(session_id()!="import_xml"){
-			session_name("import_xml");
-			session_start();
-		}
+		cherry_plugin_import_session();
 		if(!empty($_SESSION['attachment_posts'])){
 			$generate_metadata = $_SESSION['attachment_metapost'];
 			foreach ($generate_metadata as $key => $value) {
@@ -822,10 +803,7 @@
 		if ( !wp_verify_nonce( $nonce, 'import_ajax-nonce' ) )
 			exit ( 'instal_error');
 
-		if(session_id()!="import_xml"){
-			session_name("import_xml");
-			session_start();
-		}
+		cherry_plugin_import_session();
 		global $wpdb;
 
 		do_action( 'cherry_plugin_import_parents' );
@@ -869,10 +847,7 @@
 		if ( !wp_verify_nonce( $nonce, 'import_ajax-nonce' ) )
 			exit ( 'instal_error');
 
-		if(session_id()!="import_xml"){
-			session_name("import_xml");
-			session_start();
-		}
+		cherry_plugin_import_session();
 		global $wpdb;
 
 		do_action( 'cherry_plugin_update_attachment' );
@@ -897,10 +872,7 @@
 		if ( !wp_verify_nonce( $nonce, 'import_ajax-nonce' ) )
 			exit ( 'instal_error');
 
-		if(session_id()!="import_xml"){
-			session_name("import_xml");
-			session_start();
-		}
+		cherry_plugin_import_session();
 
 		do_action( 'cherry_plugin_update_featured_images' );
 		$featured_images = $_SESSION['featured_images'];
@@ -916,17 +888,32 @@
 		exit('update_attachment');
 	}
 	function cherry_plugin_parse_xml( $file ) {
+		if ( ! is_file( $file ) || ! is_readable( $file ) ) {
+			return new WP_Error( 'WXR_parse_error', __( 'The import file could not be read.', CHERRY_PLUGIN_DOMAIN ) );
+		}
 		$file_content = file_get_contents($file);
 		$file_content = iconv('utf-8', 'utf-8//IGNORE', $file_content);
 		$file_content = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', '', $file_content);
 
 		if($file_content != null){
 			$dom = new DOMDocument('1.0');
-			$dom->loadXML( $file_content );
+			$internal_errors = libxml_use_internal_errors( true );
+			$loaded = $dom->loadXML( $file_content, LIBXML_NONET );
+			libxml_clear_errors();
+			libxml_use_internal_errors( $internal_errors );
+			if ( ! $loaded || isset( $dom->doctype ) ) {
+				return new WP_Error( 'WXR_parse_error', __( 'Invalid WXR import file.', CHERRY_PLUGIN_DOMAIN ) );
+			}
 
 			$xml = simplexml_import_dom( $dom );
+			if ( ! $xml || ! isset( $xml->getDocNamespaces()['wp'] ) ) {
+				return new WP_Error( 'WXR_parse_error', __( 'Missing WXR namespace.', CHERRY_PLUGIN_DOMAIN ) );
+			}
 			$old_upload_url = $xml->xpath('/rss/channel/wp:base_site_url');
-			$old_upload_url = $old_upload_url[0];
+			if ( ! $old_upload_url ) {
+				return new WP_Error( 'WXR_parse_error', __( 'Missing WXR site URL.', CHERRY_PLUGIN_DOMAIN ) );
+			}
+			$old_upload_url = (string) $old_upload_url[0];
 			$upload_dir = wp_upload_dir();
 			$upload_dir = $upload_dir['url'];
 			$cut_upload_dir = substr($upload_dir, strpos($upload_dir, 'wp-content/uploads'), strlen($upload_dir)-1);
@@ -942,8 +929,11 @@
 			$file_content = preg_replace($pattern_meta_value, $cut_date_upload_dir_2, $file_content);
 			$file_content = preg_replace($pattern, $cut_upload_dir, $file_content);
 
-			$parser = new WXR_Parser();
+			$parser = new Cherry_WXR_Parser();
 			$parser_array = $parser->parse( $file_content, $file );
+			if ( is_wp_error( $parser_array ) ) {
+				return $parser_array;
+			}
 
 			$parser_array['site_settings'] = array(
 				'blogname' => 			implode ($xml->xpath('/rss/channel/title')),
@@ -954,7 +944,7 @@
 
 			return $parser_array;
 		}else{
-			exit('error');
+			return new WP_Error( 'WXR_parse_error', __( 'Empty WXR import file.', CHERRY_PLUGIN_DOMAIN ) );
 		}
 	}
 	function settings() {
@@ -1025,7 +1015,7 @@
 		if (file_exists($htaccess)) {
 			$fp = fopen($htaccess, 'a+');
 			if ($fp) {
-				$contents = fread($fp, filesize($htaccess));
+				$contents = filesize($htaccess) > 0 ? fread($fp, filesize($htaccess)) : '';
 				$pos = strpos('# AddType TYPE/SUBTYPE EXTENSION', $contents);
 				if ( $pos!==false ) {
 					fwrite($fp, "\r\n# AddType TYPE/SUBTYPE EXTENSION\r\n");
@@ -1040,8 +1030,8 @@
 					fwrite($fp, "AddType video/ogg ogv\r\n");
 					fwrite($fp, "AddType video/webm webm\r\n");
 					fwrite($fp, "AddType video/webm webmv\r\n");
-					fclose($fp);
 				}
+				fclose($fp);
 			}
 		}
 	}

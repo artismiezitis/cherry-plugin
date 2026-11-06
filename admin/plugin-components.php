@@ -20,13 +20,13 @@ class cherry_plugin_components {
 				break;
 		}
 		$get_remote_info = cherry_plugin_remote_query(array('data_type' => 'info'));
-		$support_link = $get_remote_info['support_url'.$locals];
-		$doc_link = $get_remote_info['document_url'];
+		$support_link = $get_remote_info['support_url'.$locals] ?? 'https://github.com/CherryFramework/cherry-plugin/issues';
+		$doc_link = $get_remote_info['document_url'] ?? 'https://github.com/CherryFramework/cherry-plugin';
 
 		if (class_exists('Woocommerce')) {
-			$doc_link = $get_remote_info['document_url_woocommerce'];
+			$doc_link = $get_remote_info['document_url_woocommerce'] ?? $doc_link;
 		} elseif (function_exists('jigoshop_init')) {
-			$doc_link = $get_remote_info['document_url_jigoshop'];
+			$doc_link = $get_remote_info['document_url_jigoshop'] ?? $doc_link;
 		}
 
 		$output = '<div class="wrap cherry-plugin">';

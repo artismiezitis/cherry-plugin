@@ -6,6 +6,11 @@
 if (!function_exists('table_shortcode')) {
 
 	function table_shortcode( $atts, $content = null, $shortcodename = '' ) {
+		$atts = is_array( $atts ) ? $atts : array();
+		$atts = array_filter( $atts, function ( $key ) { return preg_match( '/^td[1-9][0-9]*$/', (string) $key ); }, ARRAY_FILTER_USE_KEY );
+		if ( ! $atts ) {
+			return '';
+		}
 		$output = '<table class="table table-bordered table-striped">';
 
 		//Build thead
@@ -13,7 +18,7 @@ if (!function_exists('table_shortcode')) {
 		$total = count($atts);
 
 		for($i = 1; $i <= $total; $i++){
-			$output .= '<th>'.$atts['td'.$i].'</th>';
+			$output .= '<th>'.( $atts['td'.$i] ?? '' ).'</th>';
 		}
 
 		$output .= '</tr></thead>';

@@ -101,7 +101,7 @@ if ( !function_exists( 'shortcode_roundabout' ) ) {
 			if ( $num >= $i ) {
 				if ( has_post_thumbnail( $post->ID ) ) {
 					$attachment_url = wp_get_attachment_image_src( get_post_thumbnail_id($post->ID), 'full' );
-					$url            = $attachment_url['0'];
+					$url            = $attachment_url[0] ?? '';
 					$image          = aq_resize($url, $thumb_width, $thumb_height, true);
 					$output .= '<li class="list-item-'.$itemcounter.'">';
 					$output .= '<a href="'.get_permalink($post->ID).'" title="'.get_the_title($post->ID).'">';

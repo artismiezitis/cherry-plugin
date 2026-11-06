@@ -28,6 +28,7 @@ function aq_resize( $url, $width = null, $height = null, $crop = null, $single =
 
 	// Caipt'n, ready to hook.
 	if ( true === $upscale ) add_filter( 'image_resize_dimensions', 'aq_upscale', 10, 6 );
+	try {
 
 	// Define upload path & dir.
 	$upload_info = wp_upload_dir();
@@ -64,8 +65,8 @@ function aq_resize( $url, $width = null, $height = null, $crop = null, $single =
 
 	// Get image size after cropping.
 	$dims = image_resize_dimensions( $orig_w, $orig_h, $width, $height, $crop );
-	$dst_w = $dims[4];
-	$dst_h = $dims[5];
+	$dst_w = $dims ? $dims[4] : $orig_w;
+	$dst_h = $dims ? $dims[5] : $orig_h;
 
 	// Return the original image only if it exactly fits the needed measures.
 	if ( ! $dims && ( ( ( null === $height && $orig_w == $width ) xor ( null === $width && $orig_h == $height ) ) xor ( $height == $orig_h && $width == $orig_w ) ) ) {
@@ -121,9 +122,6 @@ function aq_resize( $url, $width = null, $height = null, $crop = null, $single =
 		}
 	}
 
-	// Okay, leave the ship.
-	if ( true === $upscale ) remove_filter( 'image_resize_dimensions', 'aq_upscale' );
-
 	// Return the output.
 	if ( $single ) {
 		// str return.
@@ -138,6 +136,9 @@ function aq_resize( $url, $width = null, $height = null, $crop = null, $single =
 	}
 
 	return $image;
+	} finally {
+		if ( true === $upscale ) remove_filter( 'image_resize_dimensions', 'aq_upscale' );
+	}
 }
 
 

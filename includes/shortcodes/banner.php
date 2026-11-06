@@ -18,7 +18,7 @@ if ( !function_exists( 'banner_shortcode' ) ) {
 		), $atts));
 
 		$uploads          = wp_upload_dir();
-		$uploads_dir_name = end( ( explode( '/', $uploads['baseurl'] ) ) );
+		$uploads_dir_name = basename( $uploads['baseurl'] );
 
 		$img_path = explode( 'uploads', $img );
 		if ( 1 == count( $img_path ) ) {

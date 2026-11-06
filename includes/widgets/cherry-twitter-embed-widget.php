@@ -9,9 +9,11 @@ $error = array();
 
 		/** @see WP_Widget::widget */
 		public function widget($args, $instance) {
+		$instance = wp_parse_args( (array) $instance, array( 'error' => '', 'title' => '', 'widgetId' => '', 'userName' => '', 'color_scheme' => 'light', 'limit' => '' ) );
 			extract(array_merge($args , $instance));
 
 			$lang = get_bloginfo('language');
+			$limit_string = '';
 
 			$output = $before_widget;
 			$output .= $title ? $before_title . $title . $after_title : '' ;

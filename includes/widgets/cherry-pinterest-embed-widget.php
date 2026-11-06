@@ -9,6 +9,7 @@ $error = array();
 
 		/** @see WP_Widget::widget */
 		public function widget($args, $instance) {
+		$instance = wp_parse_args( (array) $instance, array( 'error' => '', 'title' => '', 'url' => '' ) );
 			extract(array_merge($args , $instance));
 
 			$url = strtolower(esc_html($url));

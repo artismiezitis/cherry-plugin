@@ -142,7 +142,7 @@ if (!function_exists('posts_grid_shortcode')) {
 				setup_postdata($posts[$j]);
 				$excerpt        = get_the_excerpt();
 				$attachment_url = wp_get_attachment_image_src( get_post_thumbnail_id($post_id), 'full' );
-				$url            = $attachment_url['0'];
+				$url            = $attachment_url[0] ?? '';
 				$image          = aq_resize($url, $thumb_width, $thumb_height, true);
 				$mediaType      = get_post_meta($post_id, 'tz_portfolio_type', true);
 				$prettyType     = 0;

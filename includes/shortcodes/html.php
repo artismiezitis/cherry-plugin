@@ -8,7 +8,7 @@
 // Frames
 if (!function_exists('frame_shortcode')) {
 	function frame_shortcode( $atts, $content = null, $shortcodename = '' ) {
-		$output = '<figure class="frame thumbnail align' . $atts['align'] . ' clearfix">';
+		$output = '<figure class="frame thumbnail align' . ( $atts['align'] ?? '' ) . ' clearfix">';
 		$output .= do_shortcode($content);
 		$output .= '</figure>';
 

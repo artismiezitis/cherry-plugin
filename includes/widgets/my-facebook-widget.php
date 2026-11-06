@@ -5,6 +5,7 @@
 		}
 	
 		public function widget( $args, $instance ){
+		$instance = wp_parse_args( (array) $instance, array( 'title' => 'My Facebook Page', 'facebook_URL' => '', 'box_width' => '100%', 'box_height' => '100%', 'color_scheme' => 'light' ) );
 			extract($args, EXTR_SKIP);
 			$title          = apply_filters('widget_title', empty($instance['title']) ? __('My Facebook Page', CHERRY_PLUGIN_DOMAIN) : $instance['title']);
 			$facebook_URL   = apply_filters('widget_facebook_URL', empty($instance['facebook_URL']) ? '' : $instance['facebook_URL']);
@@ -47,15 +48,15 @@
 		}
 		public function update( $new_instance, $old_instance ){
 			$instance                   = $old_instance;
-			$instance['title']          = strip_tags($new_instance['title']);
-			$instance['facebook_URL']   = $new_instance['facebook_URL'];
-			$instance['box_width']      = $new_instance['box_width'];
-			$instance['box_height']     = $new_instance['box_height'];
-			$instance['color_scheme']   = $new_instance['color_scheme'];
-			$instance['display_haeder'] = $new_instance['display_haeder'];
-			$instance['display_faces']  = $new_instance['display_faces'];
-			$instance['display_stream'] = $new_instance['display_stream'];
-			$instance['display_border'] = $new_instance['display_border'];
+			$instance['title']          = strip_tags(( $new_instance['title'] ?? '' ));
+			$instance['facebook_URL']   = ( $new_instance['facebook_URL'] ?? '' );
+			$instance['box_width']      = ( $new_instance['box_width'] ?? '' );
+			$instance['box_height']     = ( $new_instance['box_height'] ?? '' );
+			$instance['color_scheme']   = ( $new_instance['color_scheme'] ?? '' );
+			$instance['display_haeder'] = ( $new_instance['display_haeder'] ?? '' );
+			$instance['display_faces']  = ( $new_instance['display_faces'] ?? '' );
+			$instance['display_stream'] = ( $new_instance['display_stream'] ?? '' );
+			$instance['display_border'] = ( $new_instance['display_border'] ?? '' );
 
 			return $instance;
 		}

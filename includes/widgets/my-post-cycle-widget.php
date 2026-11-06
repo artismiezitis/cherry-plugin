@@ -8,6 +8,7 @@ class MY_CycleWidget extends WP_Widget {
 
 	/* @see WP_Widget::widget */
 	function widget($args, $instance) {
+		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'post_type' => 'post', 'categories' => '', 'count' => 5, 'thumb_width' => 370, 'thumb_height' => 270, 'show_title' => 'true', 'show_date' => 'false', 'show_author' => 'false', 'show_comments' => 'false', 'show_excerpt' => 'false', 'excerpt_count' => 5, 'more_text_single' => '', 'control_nav' => 'false', 'direction_nav' => 'true', 'speed' => 7 ) );
 		extract( $args );
 		$title            = apply_filters('widget_title', $instance['title']);
 		$post_type        = $instance['post_type'];
@@ -72,7 +73,7 @@ class MY_CycleWidget extends WP_Widget {
 						navObject.animate({"top":activeImageCenter-navIconHeight/2}, 200);
 					}
 				<?php } ?>
-				jQuery(window).load(function() {
+				jQuery(window).on('load', function() {
 					jQuery('#flexslider_<?php echo $random ?>').flexslider({
 						animation: "slide",
 						smoothHeight: true,

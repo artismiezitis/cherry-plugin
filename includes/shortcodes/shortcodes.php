@@ -94,7 +94,7 @@ if (!function_exists('shortcode_recent_posts')) {
 				setup_postdata($post);
 				$excerpt        = get_the_excerpt();
 				$attachment_url = wp_get_attachment_image_src( get_post_thumbnail_id($post->ID), 'full' );
-				$url            = $attachment_url['0'];
+				$url            = $attachment_url[0] ?? '';
 				$image          = aq_resize($url, $thumb_width, $thumb_height, true);
 
 				$post_classes = get_post_class();
@@ -196,10 +196,10 @@ if (!function_exists('shortcode_recent_posts')) {
 							{
 								title:"'. $audio_title .'",
 								artist:"'. $audio_artist .'",
-								'. $audio_format .' : "'. stripslashes(htmlspecialchars_decode($file)) .'"}
+								'. $audio_format .' : "'. stripslashes(htmlspecialchars_decode($file, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401)) .'"}
 							], {
 								playlistOptions: {enableRemoveControls: false},
-								ready: function () {jQuery(this).jPlayer("setMedia", {'. $audio_format .' : "'. stripslashes(htmlspecialchars_decode($file)) .'", poster: "'. $image .'"});
+								ready: function () {jQuery(this).jPlayer("setMedia", {'. $audio_format .' : "'. stripslashes(htmlspecialchars_decode($file, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401)) .'", poster: "'. $image .'"});
 							},
 							swfPath: "'. $template_url .'/flash",
 							supplied: "'. $audio_format .', all",
@@ -311,8 +311,8 @@ if (!function_exists('shortcode_recent_posts')) {
 								jPlayerObj.jPlayer({
 									ready: function () {
 										jQuery(this).jPlayer("setMedia", {
-											m4v: "'. stripslashes(htmlspecialchars_decode($file1)) .'",
-											ogv: "'. stripslashes(htmlspecialchars_decode($file2)) .'",
+											m4v: "'. stripslashes(htmlspecialchars_decode($file1, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401)) .'",
+											ogv: "'. stripslashes(htmlspecialchars_decode($file2, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401)) .'",
 											poster: "'. $image .'"
 										});
 									},
@@ -397,7 +397,7 @@ if (!function_exists('shortcode_recent_posts')) {
 							$output .= '</div></div></div></div>';
 							$output .= '</div>';
 					} else {
-						$output .= '<div class="video-wrap">' . stripslashes(htmlspecialchars_decode($embed)) . '</div>';
+						$output .= '<div class="video-wrap">' . stripslashes(htmlspecialchars_decode($embed, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401)) . '</div>';
 					}
 
 					if($excerpt_count >= 1){
@@ -574,7 +574,7 @@ if (!function_exists('shortcode_recenttesti')) {
 			$testiemail = sanitize_email( get_post_meta( $post_id, 'my_testi_email', true ) );
 
 			$attachment_url = wp_get_attachment_image_src( get_post_thumbnail_id( $post_id ), 'full' );
-			$url            = $attachment_url['0'];
+			$url            = $attachment_url[0] ?? '';
 			$image          = aq_resize($url, 280, 240, true);
 
 			$output .= '<div class="testi-item list-item-'.$itemcounter.'">';
@@ -650,7 +650,7 @@ if (!function_exists('shortcode_tags')) {
 		$output = '<div class="tags-cloud clearfix">';
 		$tags = wp_tag_cloud('smallest=8&largest=8&format=array');
 
-		foreach($tags as $tag){
+		foreach( (array) $tags as $tag ){
 			$output .= $tag.' ';
 		}
 

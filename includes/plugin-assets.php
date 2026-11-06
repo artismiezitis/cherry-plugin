@@ -105,7 +105,7 @@
 			$site_uri = $_SERVER['PHP_SELF'];
 		} else {
 			$site_uri = $_SERVER['REQUEST_URI'];
-			$https = empty($_SERVER["HTTPS"]) ? '' : ($_SERVER["HTTPS"] == "on") ? "s" : "";
+			$https = empty($_SERVER["HTTPS"]) ? '' : (($_SERVER["HTTPS"] == "on") ? "s" : "");
 			$site_protocol = strtolower($_SERVER["SERVER_PROTOCOL"]);
 			$site_protocol = substr($site_protocol,0,strpos($site_protocol,"/")).$https;
 			$site_port = ($_SERVER["SERVER_PORT"] == "80") ? "" : (":".$_SERVER["SERVER_PORT"]);

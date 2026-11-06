@@ -6,6 +6,7 @@ class MY_CommentWidget extends WP_Widget {
 	}
 
 	function widget( $args, $instance ) {
+		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'comments_count' => '5', 'avatar_size' => '48', 'meta_format' => 'none' ) );
 		global $wpdb, $comments, $comment;
 
 		extract( $args, EXTR_SKIP );
@@ -117,14 +118,14 @@ class MY_CommentWidget extends WP_Widget {
 		$instance = $old_instance;
 
 		//Strip tags from title and name to remove HTML
-		$instance['title'] = strip_tags( $new_instance['title'] );
-		$instance['comments_count'] = strip_tags( $new_instance['comments_count'] );
-		$instance['avatar_size'] = $new_instance['avatar_size'];
-		$instance['display_author_name'] = $new_instance['display_author_name'];
-		$instance['display_avatar'] = $new_instance['display_avatar'];
-		$instance['display_date'] = $new_instance['display_date'];
-		$instance['display_post_title'] = $new_instance['display_post_title'];
-		$instance['meta_format'] = $new_instance['meta_format'];
+		$instance['title'] = strip_tags( ( $new_instance['title'] ?? '' ) );
+		$instance['comments_count'] = strip_tags( ( $new_instance['comments_count'] ?? '' ) );
+		$instance['avatar_size'] = ( $new_instance['avatar_size'] ?? '' );
+		$instance['display_author_name'] = ( $new_instance['display_author_name'] ?? '' );
+		$instance['display_avatar'] = ( $new_instance['display_avatar'] ?? '' );
+		$instance['display_date'] = ( $new_instance['display_date'] ?? '' );
+		$instance['display_post_title'] = ( $new_instance['display_post_title'] ?? '' );
+		$instance['meta_format'] = ( $new_instance['meta_format'] ?? '' );
 
 		return $instance;
 	}

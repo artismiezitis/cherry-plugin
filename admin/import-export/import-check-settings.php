@@ -4,7 +4,6 @@
 	 */
 	// correct settings for server
 	$must_settings = array(
-		'safe_mode'           => 'off',
 		'file_uploads'        => 'on',
 		'memory_limit'        => 128,
 		'post_max_size'       => 8,
@@ -19,8 +18,6 @@
 	//result array
 	$result = array();
 
-	if ( ini_get('safe_mode') ) $current_settings['safe_mode'] = 'on';
-		else $current_settings['safe_mode'] = 'off';
 	if ( ini_get('file_uploads') ) $current_settings['file_uploads'] = 'on';
 		else $current_settings['file_uploads'] = 'off';
 	$current_settings['memory_limit'] = (int)ini_get('memory_limit');
@@ -31,8 +28,6 @@
 
 	$diff = array_diff_assoc($must_settings, $current_settings);
 
-	if ( strcmp($must_settings["safe_mode"], $current_settings["safe_mode"]) )
-		$result["safe_mode"] = $must_settings["safe_mode"];
 	if ( strcmp($must_settings["file_uploads"], $current_settings["file_uploads"]) )
 		$result["file_uploads"] = $must_settings["file_uploads"];
 

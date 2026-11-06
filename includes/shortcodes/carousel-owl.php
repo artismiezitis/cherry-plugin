@@ -122,7 +122,7 @@ if ( !function_exists('shortcode_carousel_owl') ) {
 
 							if ( has_post_thumbnail( $post_id ) ) {
 								$attachment_url = wp_get_attachment_image_src( get_post_thumbnail_id( $post_id ), 'full' );
-								$url            = $attachment_url['0'];
+								$url            = $attachment_url[0] ?? '';
 								$image          = aq_resize($url, $thumb_width, $thumb_height, true);
 
 								$output .= '<figure>';
@@ -179,14 +179,14 @@ if ( !function_exists('shortcode_carousel_owl') ) {
 							}
 
 							// post title
-							if ( !empty($post_title{0}) ) {
+							if ( !empty($post_title[0]) ) {
 								$output .= '<h5><a href="' . $post_permalink . '" title="' . $post_title_attr . '">';
 									$output .= $post_title;
 								$output .= '</a></h5>';
 							}
 
 							// post excerpt
-							if ( !empty($excerpt{0}) ) {
+							if ( !empty($excerpt[0]) ) {
 								$output .= $excerpt_count > 0 ? '<p class="excerpt">' . wp_trim_words( $excerpt, $excerpt_count ) . '</p>' : '';
 							}
 

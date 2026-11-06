@@ -8,6 +8,7 @@ class My_SocialNetworksWidget extends WP_Widget {
 	}
 
 	function widget( $args, $instance ) {
+		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'twitter' => '', 'facebook' => '', 'flickr' => '', 'feed' => '', 'linkedin' => '', 'delicious' => '', 'youtube' => '', 'google' => '', 'twitter_label' => '', 'facebook_label' => '', 'flickr_label' => '', 'feed_label' => '', 'linkedin_label' => '', 'delicious_label' => '', 'youtube_label' => '', 'google_label' => '', 'display' => 'icons' ) );
 		extract($args);
 		$title = apply_filters( 'widget_title', empty($instance['title']) ? '' : $instance['title'], $instance );
 

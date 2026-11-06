@@ -16,7 +16,7 @@ function get_cherry_name() {
 		$theme_data = get_theme_data( get_template_directory() . '/style.css' );
 		$theme_name = $theme_data['Name'];
 	}
-	$theme_name = preg_replace("/\W/", "_", strtolower($theme_name) );
+	$theme_name = preg_replace("/\W/", "_", strtolower($theme_name ?? '') );
 	return $theme_name;
 }
 
@@ -69,7 +69,7 @@ function clean_rules() {
 
 	// get all widgets names
 	$all_widgets = array();
-	$all_widgets_assoc = get_option('sidebars_widgets');
+	$all_widgets_assoc = (array) get_option('sidebars_widgets', array());
 	// iterate throug the sidebar widgets settings to get all active widgets names
 	foreach($all_widgets_assoc as $sidebar_name => $sidebar) {
 		// remember about wp_inactive_widgets and array_version fields!
@@ -207,7 +207,7 @@ function kc_widget_form_extend( $instance, $widget ) {
 		$users = array();
 	}
 
-	if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
+	if ( ( $_SERVER['REQUEST_METHOD'] ?? '' ) == 'POST' && isset( $_POST['widget_number'] ) ) {
 		$w_id = $widget->id_base;
 		$w_num = abs($_POST['widget_number']);
 
@@ -250,6 +250,10 @@ function kc_widget_form_extend( $instance, $widget ) {
 // Hide the widget if necessary
 add_filter( 'widget_display_callback', 'maybe_hide_widget', 10, 3 );
 function maybe_hide_widget( $instance, $widget_object, $args ) {
+	// The block editor renders legacy widget previews without a sidebar widget ID.
+	if ( empty( $args['widget_id'] ) ) {
+		return $instance;
+	}
 
 	if ( ! check_widget_visibility( $args['widget_id'] ) )
 		return false;
@@ -289,11 +293,11 @@ function add_widget_class_attr($haystack_str) {
 	$pos          = strpos($haystack_str, $needle_str);
 
 	if ( $pos === false ) {
-		$search_str   = htmlspecialchars('>');
-		$replace_str  = htmlspecialchars(' class="">');
+		$search_str   = htmlspecialchars('>', ENT_QUOTES);
+		$replace_str  = htmlspecialchars(' class="">', ENT_QUOTES);
 		$haystack_str = str_replace($search_str, $replace_str, $haystack_str);
 	}
-	return htmlspecialchars_decode($haystack_str);
+	return htmlspecialchars_decode($haystack_str, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401);
 }
 
 
@@ -547,6 +551,41 @@ function cherry_widget_control_styles_list($widget_name, $id, $value2, $value3) 
 	echo '<hr />';
 }
 
+/** Evaluate saved rules directly; rule values must never become PHP code. */
+function cherry_widget_condition_matches( $mode, $input, $users ) {
+	$matches = true;
+	if ( is_string( $input ) && $input !== '' && $mode !== 'all' ) {
+		$matches = false;
+		foreach ( explode( ',', ltrim( $input, ',' ) ) as $rule ) {
+			$parts = explode( ':', trim( $rule ), 2 );
+			$value = $parts[1] ?? '';
+			switch ( $parts[0] ) {
+				case 'homepage': $match = is_front_page(); break;
+				case 'blog': $match = is_home(); break;
+				case 'page': $match = $value !== '' && is_page( $value ); break;
+				case 'post': $match = $value !== '' && is_single( $value ); break;
+				case 'category': $match = $value !== '' && ( is_category( $value ) || ( is_single() && in_category( $value ) ) ); break;
+				case 'tag': $match = $value !== '' && ( is_tag( $value ) || ( is_single() && has_tag( $value ) ) ); break;
+				case 'archive': $match = is_archive(); break;
+				case 'author': $match = $value !== '' && is_author( $value ) && is_single(); break;
+				case 'search': $match = is_search(); break;
+				case 'page404': $match = is_404(); break;
+				default: $match = false;
+			}
+			$matches = $matches || $match;
+		}
+		if ( $mode === 'exclude' ) {
+			$matches = ! $matches;
+		}
+	}
+	switch ( $users ) {
+		case 'guests': return $matches && ! is_user_logged_in();
+		case 'registered': return $matches && is_user_logged_in();
+		case 'administrator': return $matches && current_user_can( 'manage_options' );
+		default: return $matches;
+	}
+}
+
 function check_widget_visibility($id) {
 	// get access to registered widgets
 	global $wp_registered_widgets;
@@ -563,21 +602,11 @@ function check_widget_visibility($id) {
 	// if widget doesn't exists - skip this iteration
 	if ( !isset($wp_registered_widgets[$id]) ) return false;
 
-	// check the widget rules
-	$conditional_result = false;
-
-	// create conditional function based on rules
-	if ( isset($options[$id]) && $options[$id] != '' ) {
-		// create function
-		$conditional_function = create_function('', 'return '.cherry_condition($options_type[$id], $options[$id], $users[$id]).';');
-		// generate the result of function
-		$conditional_result = $conditional_function();
-	} else if ( isset($users[$id]) && $users[$id] != '' ) {
-		// create function
-		$conditional_function = create_function('', 'return '.cherry_condition($options_type[$id], $options[$id], $users[$id]).';');
-		// generate the result of function
-		$conditional_result = $conditional_function();
-	}
+	$conditional_result = cherry_widget_condition_matches(
+		$options_type[$id] ?? 'all',
+		$options[$id] ?? '',
+		$users[$id] ?? 'all'
+	);
 	// if condition for widget isn't set or is TRUE
 	if ( (!isset($options[$id]) || $options[$id] == '') && (!isset($users[$id]) || $users[$id] == '') || $conditional_result === TRUE ) {
 		// return TRUE, because at lease one widget exists in the specific sidebar

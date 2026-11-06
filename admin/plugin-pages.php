@@ -70,7 +70,7 @@
 				}
 			</script>
 			<?php
-			$response = wp_check_browser_version();
+			$response = wp_parse_args( (array) wp_check_browser_version(), array( 'name' => '', 'version' => '' ) );
 			$browser_not_supported = isset($_GET['not_supported'])
 									|| $response['name'] == 'Internet Explorer' && $response['version'] <= 9
 									|| $response['name'] == 'Safari' && $response['version'] <= 6 ? true : false ;

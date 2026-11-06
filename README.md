@@ -3,6 +3,42 @@ Cherry Plugin
 
 Cherry Plugin contains all shortcodes and widgets used in Cherry Framework. Also Cherry Framework Import/Export features are also added by Cherry plugin.
 
+## Compatibility and installation
+
+Version **1.2.9** requires PHP **8.0+** and WordPress **6.0+**. The tested runtime range is PHP **8.0–8.5**, with **WordPress 7.1.4**, the [latest stable release verified on 2026-11-06](https://wordpress.org/download/releases/). Future PHP and WordPress releases require another test run.
+
+Copy this directory to `wp-content/plugins/cherry-plugin` and activate **Cherry Plugin** in WordPress. When upgrading an existing site, back up the database and uploads, then replace the plugin files. Existing shortcodes, widget IDs, options and import/export formats are retained; no database migration is required.
+
+The original frontend markup expects a Cherry Framework theme's Bootstrap styles and scripts. Loading the plugin with another theme is supported by the runtime tests, but does not supply that theme integration or reproduce Cherry's styling. The TinyMCE shortcode picker belongs to the classic editor; in the block editor, use a Shortcode block. Existing widgets can be used through WordPress's Legacy Widget block. Cherry's additional visibility controls remain part of the classic Widgets interface.
+
+Google Maps and social widgets still depend on their external providers, credentials and original API contracts. In particular, the legacy Instagram client-ID integration has not been migrated to a new Instagram API. External provider availability and every third-party theme/plugin combination are outside the local test coverage. This release does not claim a comprehensive security audit.
+
+## Tests
+
+The repeatable suite creates a new Docker network, MariaDB database and WordPress installation. It never uses an existing site. Requirements: Docker, Python 3.9+ and an available local TCP port. Use a virtual environment for the optional browser dependencies:
+
+```powershell
+python -m venv .venv
+.venv/Scripts/python -m pip install -r tests/requirements.txt
+.venv/Scripts/python -m playwright install chromium
+.venv/Scripts/python tests/run.py --wordpress 7.1.4 --browser
+```
+
+On Linux/macOS, use `.venv/bin/python` instead. Omit `--browser` to run only PHP lint and integration checks, use `--php 8.5` for one PHP branch, or `--port 8098` if port 8097 is occupied. Omitting `--wordpress` downloads the current stable WordPress release. Test containers and their database are removed afterwards; the printed temporary directory retains JSON results, lint logs and screenshots. Do not run individual fixture scripts against a real site: they deliberately export, delete and reimport test records.
+
+Coverage includes all registered Cherry shortcodes, all 13 widget forms, saving checked/unchecked fields, rendering saved widgets, visibility rules, admin pages, XML/JSON export, all three XML parsers, invalid imports, image resizing and filter cleanup. The full run also verifies a downloadable ZIP, the 12-stage HTTP import after removing the original records, restored terms/comments/media/menu/widgets, maintenance mode, settings persistence, and Chromium rendering on desktop/mobile. PHP warnings, notices and deprecations fail the integration run; a nonempty WordPress debug log fails the full run.
+
+See [the compatibility reference](.agents/skills/compatibility/references/php-wordpress.md) for implementation details and [the verification record](.agents/skills/compatibility/references/audits/2026-11-06.md) for exact versions, evidence and limits.
+
+#### v1.2.9 ####
+
+* FIX: PHP 8 parse errors, removed dynamic-function calls and missing-value warnings.
+* FIX: Widget saves with unchecked fields, media-free posts, table/tab attributes and image resize cleanup.
+* FIX: WordPress translation timing, shortcode availability in admin/REST contexts and legacy widget previews.
+* FIX: XML parser collisions, PHP 8.5 XML callbacks, multiline WXR records and menu metadata import.
+* FIX: Export JavaScript now uses WordPress's AJAX response parser; current jQuery event/failure handlers replace removed APIs.
+* ADD: Disposable PHP 8.0–8.5 / WordPress integration, HTTP round-trip and browser regression tests.
+
 #### v1.2.8.2 ####
 
 * FIX: `[google_map_ap]` shortcode

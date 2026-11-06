@@ -6,6 +6,7 @@
 if (!function_exists('shortcode_progressbar')) {
 
 	function shortcode_progressbar( $atts, $content = null, $shortcodename = '' ) {
+		$bar_type = $bar_animated = $g_type = '';
 		extract(shortcode_atts(
 			array(
 				'value'        => '50',

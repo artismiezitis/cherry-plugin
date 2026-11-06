@@ -5,10 +5,13 @@
 add_filter( 'pre_set_site_transient_update_plugins', 'cherry_plugin_check_for_update' );
 function cherry_plugin_check_for_update( $transient ) {
 	global $cherry_plugin_details_url;
+	if ( ! is_object( $transient ) ) {
+		return $transient;
+	}
 
 	$remote_query = cherry_plugin_remote_query( array( 'data_type' => 'plugin' ) );
 
-	if ( $remote_query != NULL ) {
+	if ( is_array( $remote_query ) && isset( $remote_query['url'], $remote_query['new_version'], $remote_query['package'] ) && version_compare( $remote_query['new_version'], CHERRY_PLUGIN_VERSION, '>' ) ) {
 
 		$cherry_plugin_details_url = $remote_query['url'];
 		add_action( 'admin_head', 'cherry_change_details_link' );
@@ -30,7 +33,7 @@ function cherry_change_details_link() {
 	global $cherry_plugin_details_url;
 
 	echo '<script>
-		jQuery(document).on("ready", function() {
+		jQuery(function() {
 			jQuery("#cherry-plugin + .plugin-update-tr a.thickbox").attr({"href": "' . add_query_arg( array( 'TB_iframe' => 'true', 'width' => 1024, 'height' => 800 ), $cherry_plugin_details_url) . '" })
 		})</script>';
 }
@@ -79,8 +82,12 @@ function cherry_plugin_remote_query( $atts ) {
 		return;
 	}
 
-	$response = unserialize( $response['body'] );
-	if ( $response == null ) {
+	$body = wp_remote_retrieve_body( $response );
+	if ( ! is_serialized( $body ) ) {
+		return;
+	}
+	$response = unserialize( $body, array( 'allowed_classes' => false ) );
+	if ( ! is_array( $response ) ) {
 		return;
 	}
 

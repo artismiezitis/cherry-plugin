@@ -16,7 +16,7 @@ class Ad_125_125_Widget extends WP_Widget {
 		<ul class="banners clearfix unstyled">
 			<?php
 				for ( $ad_count = 1; $ad_count <= 4; $ad_count++ ) :
-					if ( $instance['ad_125_img_' . $ad_count] && $instance['ad_125_link_' . $ad_count] ) : ?>
+					if ( ! empty( $instance['ad_125_img_' . $ad_count] ) && ! empty( $instance['ad_125_link_' . $ad_count] ) ) : ?>
 
 					<li class="banners_li">
 						<span class="hold">
@@ -36,14 +36,14 @@ class Ad_125_125_Widget extends WP_Widget {
 	function update( $new_instance, $old_instance ) {
 		$instance = $old_instance;
 
-		$instance['ad_125_img_1']  = $new_instance['ad_125_img_1'];
-		$instance['ad_125_link_1'] = $new_instance['ad_125_link_1'];
-		$instance['ad_125_img_2']  = $new_instance['ad_125_img_2'];
-		$instance['ad_125_link_2'] = $new_instance['ad_125_link_2'];
-		$instance['ad_125_img_3']  = $new_instance['ad_125_img_3'];
-		$instance['ad_125_link_3'] = $new_instance['ad_125_link_3'];
-		$instance['ad_125_img_4']  = $new_instance['ad_125_img_4'];
-		$instance['ad_125_link_4'] = $new_instance['ad_125_link_4'];
+		$instance['ad_125_img_1']  = ( $new_instance['ad_125_img_1'] ?? '' );
+		$instance['ad_125_link_1'] = ( $new_instance['ad_125_link_1'] ?? '' );
+		$instance['ad_125_img_2']  = ( $new_instance['ad_125_img_2'] ?? '' );
+		$instance['ad_125_link_2'] = ( $new_instance['ad_125_link_2'] ?? '' );
+		$instance['ad_125_img_3']  = ( $new_instance['ad_125_img_3'] ?? '' );
+		$instance['ad_125_link_3'] = ( $new_instance['ad_125_link_3'] ?? '' );
+		$instance['ad_125_img_4']  = ( $new_instance['ad_125_img_4'] ?? '' );
+		$instance['ad_125_link_4'] = ( $new_instance['ad_125_link_4'] ?? '' );
 
 		return $instance;
 	}

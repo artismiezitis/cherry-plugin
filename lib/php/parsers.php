@@ -9,19 +9,19 @@
 /**
  * WordPress Importer class for managing parsing of WXR files.
  */
-if (! class_exists('WXR_Parser')) {
-	class WXR_Parser {
+if (! class_exists('Cherry_WXR_Parser')) {
+	class Cherry_WXR_Parser {
 		function parse( $file_content , $file) {
 			// Attempt to use proper XML parsers first
 			if ( extension_loaded( 'simplexml' ) ) {
-				$parser = new WXR_Parser_SimpleXML;
+				$parser = new Cherry_WXR_Parser_SimpleXML;
 				$result = $parser->parse( $file_content );
 
 				// If SimpleXML succeeds or this is an invalid WXR file then return the results
 				if ( ! is_wp_error( $result ) || 'SimpleXML_parse_error' != $result->get_error_code() )
 					return $result;
 			} else if ( extension_loaded( 'xml' ) ) {
-				$parser = new WXR_Parser_XML;
+				$parser = new Cherry_WXR_Parser_XML;
 				$result = $parser->parse( $file_content );
 
 				// If XMLParser succeeds or this is an invalid WXR file then return the results
@@ -45,7 +45,7 @@ if (! class_exists('WXR_Parser')) {
 			}
 
 			// use regular expressions if nothing else available or this is bad XML
-			$parser = new WXR_Parser_Regex;
+			$parser = new Cherry_WXR_Parser_Regex;
 			return $parser->parse( $file );
 		}
 	}
@@ -54,25 +54,21 @@ if (! class_exists('WXR_Parser')) {
 /**
  * WXR Parser that makes use of the SimpleXML PHP extension.
  */
-if (! class_exists('WXR_Parser_SimpleXML')) {
-	class WXR_Parser_SimpleXML {
+if (! class_exists('Cherry_WXR_Parser_SimpleXML')) {
+	class Cherry_WXR_Parser_SimpleXML {
 		function parse( $file ) {
 			$authors = $posts = $categories = $tags = $terms = array();
 
 			$internal_errors = libxml_use_internal_errors(true);
 
 			$dom = new DOMDocument;
-			$old_value = null;
-			if ( function_exists( 'libxml_disable_entity_loader' ) ) {
-				$old_value = libxml_disable_entity_loader( true );
-			}
-			$success = $dom->loadXML( $file );
-			if ( ! is_null( $old_value ) ) {
-				libxml_disable_entity_loader( $old_value );
-			}
+			$success = $dom->loadXML( $file, LIBXML_NONET );
+			$xml_errors = libxml_get_errors();
+			libxml_clear_errors();
+			libxml_use_internal_errors( $internal_errors );
 
 			if ( ! $success || isset( $dom->doctype ) ) {
-				return new WP_Error( 'SimpleXML_parse_error', __( 'There was an error when reading this WXR file', 'wordpress-importer' ), libxml_get_errors() );
+				return new WP_Error( 'SimpleXML_parse_error', __( 'There was an error when reading this WXR file', 'wordpress-importer' ), $xml_errors );
 			}
 
 			$xml = simplexml_import_dom( $dom );
@@ -244,8 +240,10 @@ if (! class_exists('WXR_Parser_SimpleXML')) {
 /**
  * WXR Parser that makes use of the XML Parser PHP extension.
  */
-if (! class_exists('WXR_Parser_XML')) {
-	class WXR_Parser_XML {
+if (! class_exists('Cherry_WXR_Parser_XML')) {
+	class Cherry_WXR_Parser_XML {
+		var $wxr_version, $in_post, $cdata, $data, $sub_data, $in_tag, $in_sub_tag;
+		var $authors, $posts, $term, $category, $tag, $base_url;
 		var $wp_tags = array(
 			'wp:post_id', 'wp:post_date', 'wp:post_date_gmt', 'wp:comment_status', 'wp:ping_status', 'wp:attachment_url',
 			'wp:status', 'wp:post_name', 'wp:post_parent', 'wp:menu_order', 'wp:post_type', 'wp:post_password',
@@ -261,15 +259,16 @@ if (! class_exists('WXR_Parser_XML')) {
 		);
 
 		function parse( $file ) {
-			$this->wxr_version = $this->in_post = $this->cdata = $this->data = $this->sub_data = $this->in_tag = $this->in_sub_tag = false;
+			$this->wxr_version = $this->cdata = '';
+			$this->in_post = $this->in_tag = $this->in_sub_tag = false;
+			$this->data = $this->sub_data = array();
 			$this->authors = $this->posts = $this->term = $this->category = $this->tag = array();
 
 			$xml = xml_parser_create( 'UTF-8' );
 			xml_parser_set_option( $xml, XML_OPTION_SKIP_WHITE, 1 );
 			xml_parser_set_option( $xml, XML_OPTION_CASE_FOLDING, 0 );
-			xml_set_object( $xml, $this );
-			xml_set_character_data_handler( $xml, 'cdata' );
-			xml_set_element_handler( $xml, 'tag_open', 'tag_close' );
+			xml_set_character_data_handler( $xml, array( $this, 'cdata' ) );
+			xml_set_element_handler( $xml, array( $this, 'tag_open' ), array( $this, 'tag_close' ) );
 
 			if ( ! xml_parse( $xml, $file , true ) ) {
 				$current_line = xml_get_current_line_number( $xml );
@@ -278,7 +277,7 @@ if (! class_exists('WXR_Parser_XML')) {
 				$error_string = xml_error_string( $error_code );
 				return new WP_Error( 'XML_parse_error', 'There was an error when reading this WXR file', array( $current_line, $current_column, $error_string ) );
 			}
-			xml_parser_free( $xml );
+			unset( $xml );
 
 			if ( ! preg_match( '/^\d+\.\d+$/', $this->wxr_version ) )
 				return new WP_Error( 'WXR_parse_error', __( 'This does not appear to be a WXR file, missing/invalid WXR version number', 'wordpress-importer' ) );
@@ -338,7 +337,7 @@ if (! class_exists('WXR_Parser_XML')) {
 					unset( $this->sub_data['key'], $this->sub_data['value'] ); // remove meta sub_data
 					if ( ! empty( $this->sub_data ) )
 						$this->data['comments'][] = $this->sub_data;
-					$this->sub_data = false;
+					$this->sub_data = array();
 					break;
 				case 'wp:commentmeta':
 					$this->sub_data['commentmeta'][] = array(
@@ -351,28 +350,28 @@ if (! class_exists('WXR_Parser_XML')) {
 						$this->sub_data['name'] = $this->cdata;
 						$this->data['terms'][] = $this->sub_data;
 					}
-					$this->sub_data = false;
+					$this->sub_data = array();
 					break;
 				case 'wp:postmeta':
 					if ( ! empty( $this->sub_data ) )
 						$this->data['postmeta'][] = $this->sub_data;
-					$this->sub_data = false;
+					$this->sub_data = array();
 					break;
 				case 'item':
 					$this->posts[] = $this->data;
-					$this->data = false;
+					$this->data = array();
 					break;
 				case 'wp:category':
 				case 'wp:tag':
 				case 'wp:term':
 					$n = substr( $tag, 3 );
 					array_push( $this->$n, $this->data );
-					$this->data = false;
+					$this->data = array();
 					break;
 				case 'wp:author':
 					if ( ! empty($this->data['author_login']) )
 						$this->authors[$this->data['author_login']] = $this->data;
-					$this->data = false;
+					$this->data = array();
 					break;
 				case 'wp:base_site_url':
 					$this->base_url = $this->cdata;
@@ -391,7 +390,7 @@ if (! class_exists('WXR_Parser_XML')) {
 					}
 			}
 
-			$this->cdata = false;
+			$this->cdata = '';
 		}
 	}
 }
@@ -399,8 +398,9 @@ if (! class_exists('WXR_Parser_XML')) {
 /**
  * WXR Parser that uses regular expressions. Fallback for installs without an XML parser.
  */
-if (! class_exists('WXR_Parser_Regex')) {
-	class WXR_Parser_Regex {
+if (! class_exists('Cherry_WXR_Parser_Regex')) {
+	class Cherry_WXR_Parser_Regex {
+		var $has_gzip = false;
 		var $authors = array();
 		var $posts = array();
 		var $categories = array();
@@ -408,7 +408,7 @@ if (! class_exists('WXR_Parser_Regex')) {
 		var $terms = array();
 		var $base_url = '';
 
-		// function WXR_Parser_Regex() {
+		// function Cherry_WXR_Parser_Regex() {
 		// 	$this->__construct();
 		// }
 
@@ -423,13 +423,22 @@ if (! class_exists('WXR_Parser_Regex')) {
 			if ( $fp ) {
 				while ( ! $this->feof( $fp ) ) {
 					$importline = rtrim( $this->fgets( $fp ) );
+					// Modern WXR exports can span multiple lines in channel records.
+					foreach ( array( 'base_site_url', 'category', 'tag', 'term', 'author' ) as $channel_tag ) {
+						if ( strpos( $importline, '<wp:' . $channel_tag . '>' ) !== false ) {
+							while ( strpos( $importline, '</wp:' . $channel_tag . '>' ) === false && ! $this->feof( $fp ) ) {
+								$importline .= "\n" . $this->fgets( $fp );
+							}
+							break;
+						}
+					}
 
 					if ( ! $wxr_version && preg_match( '|<wp:wxr_version>(\d+\.\d+)</wp:wxr_version>|', $importline, $version ) )
 						$wxr_version = $version[1];
 
 					if ( false !== strpos( $importline, '<wp:base_site_url>' ) ) {
 						preg_match( '|<wp:base_site_url>(.*?)</wp:base_site_url>|is', $importline, $url );
-						$this->base_url = $url[1];
+						$this->base_url = $this->get_tag( $importline, 'wp:base_site_url' );
 						continue;
 					}
 					if ( false !== strpos( $importline, '<wp:category>' ) ) {

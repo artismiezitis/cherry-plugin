@@ -13,6 +13,7 @@ function __construct() {
  * Displays custom posts widget on blog.
  */
 function widget($args, $instance) {
+		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'excerpt_length' => '', 'more_link_text' => '', 'global_link_text' => '', 'sort_by' => '', 'asc_sort_order' => '', 'posttype' => '', 'container_class' => '', 'thumb_w' => '', 'thumb_h' => '', 'thumb_as_link' => '', 'date' => '', 'comment_num' => '', 'show_title' => '', 'show_title_date' => '', 'excerpt' => '', 'excerpt_as_link' => '', 'more_link' => '', 'more_link_class' => '', 'global_link' => '', 'global_link_href' => '' ) );
 	global $post;
 	$post_old = $post; // Save the post object.
 
@@ -39,7 +40,7 @@ function widget($args, $instance) {
 
 	// Get array of post info.
 	$args = array(
-		'showposts' => $instance["num"],
+		'showposts' => $instance['num'] ?? '',
 		'post_type' => $instance['posttype'],
 		'orderby'   => $sort_by,
 		'order'     => $sort_order,
@@ -89,7 +90,7 @@ function widget($args, $instance) {
 	?>
 		<li class="cat_post_item-<?php echo $posts_counter; ?> clearfix">
 		<?php if(has_post_thumbnail()) {
-			if ($instance["thumb"]) : ?>
+			if (( $instance['thumb'] ?? '' )) : ?>
 			<figure class="featured-thumbnail thumbnail">
 			<?php if ( $instance['thumb_as_link'] ) : ?>
 				<a href="<?php the_permalink() ?>">
@@ -183,29 +184,29 @@ function widget($args, $instance) {
  */
 function update($new_instance, $old_instance) {
 	$instance                     = $old_instance;
-	$instance['asc_sort_order']   = strip_tags($new_instance['asc_sort_order']);
-	$instance['thumb']            = strip_tags($new_instance['thumb']);
-	$instance['thumb_as_link']    = strip_tags($new_instance['thumb_as_link']);
-	$instance['excerpt_length']   = strip_tags($new_instance['excerpt_length']);
-	$instance['sort_by']          = strip_tags($new_instance['sort_by']);
-	$instance['num']              = strip_tags($new_instance['num']);
-	$instance['posttype']         = strip_tags($new_instance['posttype']);
-	$instance['title']            = strip_tags($new_instance['title']);
-	$instance['container_class']  = strip_tags($new_instance['container_class']);
-	$instance['thumb_w']          = strip_tags($new_instance['thumb_w']);
-	$instance['thumb_h']          = strip_tags($new_instance['thumb_h']);
-	$instance['date']             = strip_tags($new_instance['date']);
-	$instance['comment_num']      = strip_tags($new_instance['comment_num']);
-	$instance['show_title']       = strip_tags($new_instance['show_title']);
-	$instance['show_title_date']  = strip_tags($new_instance['show_title_date']);
-	$instance['excerpt']          = strip_tags($new_instance['excerpt']);
-	$instance['excerpt_as_link']  = strip_tags($new_instance['excerpt_as_link']);
-	$instance['more_link']        = strip_tags($new_instance['more_link']);
-	$instance['more_link_class']  = strip_tags($new_instance['more_link_class']);
-	$instance['more_link_text']   = strip_tags($new_instance['more_link_text']);
-	$instance['global_link']      = strip_tags($new_instance['global_link']);
-	$instance['global_link_href'] = strip_tags($new_instance['global_link_href']);
-	$instance['global_link_text'] = strip_tags($new_instance['global_link_text']);
+	$instance['asc_sort_order']   = strip_tags(( $new_instance['asc_sort_order'] ?? '' ));
+	$instance['thumb']            = strip_tags(( $new_instance['thumb'] ?? '' ));
+	$instance['thumb_as_link']    = strip_tags(( $new_instance['thumb_as_link'] ?? '' ));
+	$instance['excerpt_length']   = strip_tags(( $new_instance['excerpt_length'] ?? '' ));
+	$instance['sort_by']          = strip_tags(( $new_instance['sort_by'] ?? '' ));
+	$instance['num']              = strip_tags(( $new_instance['num'] ?? '' ));
+	$instance['posttype']         = strip_tags(( $new_instance['posttype'] ?? '' ));
+	$instance['title']            = strip_tags(( $new_instance['title'] ?? '' ));
+	$instance['container_class']  = strip_tags(( $new_instance['container_class'] ?? '' ));
+	$instance['thumb_w']          = strip_tags(( $new_instance['thumb_w'] ?? '' ));
+	$instance['thumb_h']          = strip_tags(( $new_instance['thumb_h'] ?? '' ));
+	$instance['date']             = strip_tags(( $new_instance['date'] ?? '' ));
+	$instance['comment_num']      = strip_tags(( $new_instance['comment_num'] ?? '' ));
+	$instance['show_title']       = strip_tags(( $new_instance['show_title'] ?? '' ));
+	$instance['show_title_date']  = strip_tags(( $new_instance['show_title_date'] ?? '' ));
+	$instance['excerpt']          = strip_tags(( $new_instance['excerpt'] ?? '' ));
+	$instance['excerpt_as_link']  = strip_tags(( $new_instance['excerpt_as_link'] ?? '' ));
+	$instance['more_link']        = strip_tags(( $new_instance['more_link'] ?? '' ));
+	$instance['more_link_class']  = strip_tags(( $new_instance['more_link_class'] ?? '' ));
+	$instance['more_link_text']   = strip_tags(( $new_instance['more_link_text'] ?? '' ));
+	$instance['global_link']      = strip_tags(( $new_instance['global_link'] ?? '' ));
+	$instance['global_link_href'] = strip_tags(( $new_instance['global_link_href'] ?? '' ));
+	$instance['global_link_text'] = strip_tags(( $new_instance['global_link_text'] ?? '' ));
 	return $instance;
 }
 
@@ -358,7 +359,7 @@ function form($instance) {
   <?php if ( function_exists('the_post_thumbnail') && current_theme_supports("post-thumbnails") ) : ?>
   <p>
 	  <label for="<?php echo $this->get_field_id("thumb"); ?>">
-		  <input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id("thumb"); ?>" name="<?php echo $this->get_field_name("thumb"); ?>" value="1" <?php checked( (bool) $instance["thumb"], true ); ?> />
+		  <input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id("thumb"); ?>" name="<?php echo $this->get_field_name("thumb"); ?>" value="1" <?php checked( (bool) ( $instance['thumb'] ?? '' ), true ); ?> />
 		  <?php _e('Show post thumbnail', CHERRY_PLUGIN_DOMAIN); ?>
 	  </label>
   </p>

@@ -11,6 +11,7 @@ class MY_Vcard_Widget extends WP_Widget {
 	}
 
 	function widget($args, $instance) {
+		$instance = wp_parse_args( (array) $instance, array( 'title' => 'My Info', 'street_address' => '', 'locality' => '', 'region' => '', 'postal_code' => '', 'tel' => '', 'email' => '', 'gmap_disable' => '', 'gmap_html' => '', 'meta_format' => 'none' ) );
 		$cache = wp_cache_get('widget_cherry_vcard', 'widget');
 
 		if (!is_array($cache)) {
@@ -109,18 +110,18 @@ class MY_Vcard_Widget extends WP_Widget {
 
 function update($new_instance, $old_instance) {
 	$instance = $old_instance;
-	$instance['title'] = strip_tags($new_instance['title']);
-	$instance['street_address'] = strip_tags($new_instance['street_address']);
-	$instance['locality'] = strip_tags($new_instance['locality']);
-	$instance['region'] = strip_tags($new_instance['region']);
-	$instance['postal_code'] = strip_tags($new_instance['postal_code']);
-	$instance['tel'] = strip_tags($new_instance['tel']);
-	$instance['email'] = strip_tags($new_instance['email']);
-	$instance['gmap_disable'] = $new_instance['gmap_disable'];
-	$instance['gmap_html'] = $new_instance['gmap_html'];
-	$instance['gmap_width'] = $new_instance['gmap_width'];
-	$instance['gmap_height'] = $new_instance['gmap_height'];
-	$instance['meta_format'] = $new_instance['meta_format'];
+	$instance['title'] = strip_tags(( $new_instance['title'] ?? '' ));
+	$instance['street_address'] = strip_tags(( $new_instance['street_address'] ?? '' ));
+	$instance['locality'] = strip_tags(( $new_instance['locality'] ?? '' ));
+	$instance['region'] = strip_tags(( $new_instance['region'] ?? '' ));
+	$instance['postal_code'] = strip_tags(( $new_instance['postal_code'] ?? '' ));
+	$instance['tel'] = strip_tags(( $new_instance['tel'] ?? '' ));
+	$instance['email'] = strip_tags(( $new_instance['email'] ?? '' ));
+	$instance['gmap_disable'] = ( $new_instance['gmap_disable'] ?? '' );
+	$instance['gmap_html'] = ( $new_instance['gmap_html'] ?? '' );
+	$instance['gmap_width'] = ( $new_instance['gmap_width'] ?? '' );
+	$instance['gmap_height'] = ( $new_instance['gmap_height'] ?? '' );
+	$instance['meta_format'] = ( $new_instance['meta_format'] ?? '' );
 
 	$this->flush_widget_cache();
 

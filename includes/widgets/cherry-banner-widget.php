@@ -10,6 +10,7 @@
 
 		/** @see WP_Widget::widget */
 		public function widget( $args, $instance ) {
+		$instance = wp_parse_args( (array) $instance, array( 'fill' => '', 'title' => '', 'description_text' => '', 'image_url' => '', 'link_url' => '' ) );
 			extract( array_merge( $args, $instance ) );
 
 			$fill = false;

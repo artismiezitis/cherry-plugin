@@ -7,6 +7,7 @@
 
 		/** @see WP_Widget::widget */
 		public function widget( $args, $instance ) {
+		$instance = wp_parse_args( (array) $instance, array( 'button_text' => '', 'title' => '', 'endpoints' => 'hashtag', 'user_name' => '', 'tag' => '', 'client_id' => '', 'image_counter' => '4', 'image_size' => 'thumbnail' ) );
 			extract( array_merge( $args, $instance ) );
 
 			if ( 'hashtag' == $endpoints ) {

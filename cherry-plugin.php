@@ -1,7 +1,9 @@
 <?php
 /*
 	Plugin Name: Cherry Plugin
-	Version: 1.2.8.2
+	Version: 1.2.9
+	Requires at least: 6.0
+	Requires PHP: 8.0
 	Plugin URI: https://github.com/CherryFramework/cherry-plugin
 	Description: Cherry team has already created a Cherry framework that can be reasonably called perfect, but we are always looking for more improvements. Meet the Cherry Plugin. This is an extension for our Cherry framework where we've included all shortcodes and widgets you will ever need. The plugin is fully compatible with any WordPress theme powered by Cherry Framework. So far the plugin is a beta release, but we're going to keep on improving it, to deliver even more cool features.
 	Author: Cherry Team
@@ -18,7 +20,7 @@
 			if ( !function_exists( 'get_plugin_data' ) ) require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
 			$upload_dir = wp_upload_dir();
-			$plugin_data = get_plugin_data(plugin_dir_path(__FILE__).'cherry-plugin.php');
+			$plugin_data = get_plugin_data(plugin_dir_path(__FILE__).'cherry-plugin.php', false, false);
 
 			//Cherry plugin constant variables
 			define('CHERRY_PLUGIN_DIR', plugin_dir_path(__FILE__));
@@ -41,8 +43,6 @@
 			// 	define( 'API_URL', esc_url( 'http://updates.cherry.template-help.com/cherrymoto/v3/api/' ) );
 			// }
 
-			load_plugin_textdomain( CHERRY_PLUGIN_DOMAIN, false, dirname( plugin_basename( __FILE__ ) ) . '/'.CHERRY_PLUGIN_DOMAIN_DIR);
-
 			do_action( 'cherry_plugin_settings' );
 		}
 		add_action('plugins_loaded', 'cherry_plugin_settings', 0);
@@ -50,12 +50,12 @@
 //init plugin
 	if(!function_exists('cherry_plugin_init')){
 		function cherry_plugin_init(){
+			load_plugin_textdomain( CHERRY_PLUGIN_DOMAIN, false, dirname( plugin_basename( __FILE__ ) ) . '/'.CHERRY_PLUGIN_DOMAIN_DIR);
 
 			include_once (CHERRY_PLUGIN_DIR . 'includes/plugin-assets.php');
+			include_once (CHERRY_PLUGIN_DIR . 'includes/plugin-includes.php');
 			if(is_admin()){
 				include_once (CHERRY_PLUGIN_DIR . 'admin/admin.php');
-			}else{
-				include_once (CHERRY_PLUGIN_DIR . 'includes/plugin-includes.php');
 			}
 			do_action( 'cherry_plugin_init' );
 		}

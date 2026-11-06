@@ -4,8 +4,10 @@
 //------------------------------------------------------
 if ( !function_exists('my_string_limit_words') ) {
 	function my_string_limit_words($string, $word_limit) {
-		if ( empty($string{0}) )
-			return;
+		$string = (string) $string;
+		$word_limit = max( 0, (int) $word_limit );
+		if ( empty($string[0]) )
+			return '';
 
 		$words = explode( ' ', $string, ( $word_limit + 1 ) );
 		if ( count( $words ) > $word_limit ) {
@@ -55,7 +57,7 @@ if(!function_exists('cherry_get_post_networks')){
 			$output .= $network_title && $display_title ? $before_title.$network_title.$after_title : '';
 			$output .= '<ul class="clearfix unstyled">';
 			foreach ($networks_array as $networks_id) {
-				$network_array = explode(";", get_option('network_'.$post_id.'_'.$networks_id, array('','','')));
+				$network_array = array_pad(explode(";", (string) get_option('network_'.$post_id.'_'.$networks_id, ';;')), 3, '');
 				$output .= '<li class="network_'.$count.'">';
 				$output .= $network_array[2] ? '<a href="'.$network_array[2].'" title="'.$network_array[1].'">' : '' ;
 				$output .= $network_array[0] ? '<span class="'.$network_array[0].'"></span>' :'';
@@ -78,7 +80,6 @@ if(!function_exists('cherry_get_post_networks')){
 //------------------------------------------------------
 if(!function_exists('gener_random')){
 	function gener_random($length){
-		srand((double)microtime()*1000000 );
 		$random_id = "";
 		$char_list = "abcdefghijklmnopqrstuvwxyz";
 		for( $i = 0; $i < $length; $i++ ) {

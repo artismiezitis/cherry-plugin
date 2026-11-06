@@ -27,3 +27,5 @@ Use [README test instructions](../../../../README.md). `tests/run.py` downloads 
 Test credentials in the fixture scripts belong only to the temporary localhost site. Do not reuse them in a real deployment. Never run reset/import fixtures against user data. Browser screenshots are retained in the printed temporary output directory; they are evidence, not runtime assets.
 
 Unresolved boundaries are recorded in the [audit](audits/2026-11-06.md): provider APIs/credentials, actual Cherry child-theme rendering and unspecified third-party combinations are not covered. This compatibility change is not a security certification or support promise for unreleased PHP versions.
+
+For the local `wordpress_lauto` installation and its separate theme/plugin patches, use the [site reference](lauto-site.md) and [installation record](audits/2026-11-06-lauto.md). Its site verification is distinct from the disposable generic plugin matrix.

@@ -1,0 +1,34 @@
+LAUTO PHP 8 compatibility update
+
+This package updates the EXISTING site. It retains CherryFramework and its
+theme47828 child theme. Cherry Plugin 1.2.9 complements those themes; it does
+not replace them.
+
+1. Back up the site's files and database.
+2. On a staging copy, merge the included wp-content directory into the existing
+   WordPress root, overwriting only files supplied in this archive. Keep the
+   other existing theme/plugin files. Do not delete or replace wp-content.
+3. Preserve the existing database, uploads, child theme, credentials, URLs and
+   activation settings. This package contains no database or wp-config.php.
+4. Check the home page, language links, internal pages, widgets, post editor,
+   Cherry Options and translation tools before copying the update to production.
+
+The package contains Cherry Plugin 1.2.9 and nine compatibility files from the
+existing CherryFramework, CodeStyling Localization and Easy Logo Slider copies.
+These additional files match the versions in compatibility-manifest.json;
+do not install them indiscriminately on different theme/plugin versions.
+
+Verified local environment: WordPress 7.0.8, PHP 8.4.12. The plugin itself also
+passed its separate PHP 8.0-8.5 / WordPress 7.1.4 regression matrix.
+The site's visible home-page text, CSS assets and desktop/mobile layout were
+compared with an isolated original PHP 7.4 copy. Existing content and settings
+were retained. No contact form was submitted; email delivery was not exercised.
+
+The local uploads copy lacks some original media files. They were missing in
+the original comparison copy as well; this update does not add/remove media.
+Retain the complete uploads directory on the client's server.
+
+The child theme's style.less is empty. Its existing precompiled main-style.css
+is deliberately preserved. Obtaining missing LESS source and redesigning theme
+options is outside this update. This package is not a comprehensive security
+audit or a certification of every external service/integration.

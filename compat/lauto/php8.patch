@@ -1,0 +1,405 @@
+diff --git a/wp-content/plugins/codestyling-localization/codestyling-localization.php b/wp-content/plugins/codestyling-localization/codestyling-localization.php
+index 847aa41..fbe66a5 100644
+--- a/wp-content/plugins/codestyling-localization/codestyling-localization.php
++++ b/wp-content/plugins/codestyling-localization/codestyling-localization.php
+@@ -289,7 +289,7 @@ function has_subdirs($base='') {
+   return false;
+ }
+ 
+-function lscandir($base='', $reg='', &$data) {
++function lscandir($base='', $reg='', &$data=array()) {
+   if (!is_dir($base) || !is_readable($base)) return $data;
+   $array = array_diff(scandir($base), array('.', '..')); 
+   foreach($array as $value) : 
+@@ -300,7 +300,7 @@ function lscandir($base='', $reg='', &$data) {
+   return $data; 
+ }
+ 
+-function rscandir($base='', $reg='', &$data) {
++function rscandir($base='', $reg='', &$data=array()) {
+   if (!is_dir($base) || !is_readable($base)) return $data;
+   $array = array_diff(scandir($base), array('.', '..')); 
+   foreach($array as $value) : 
+@@ -313,7 +313,7 @@ function rscandir($base='', $reg='', &$data) {
+   return $data; 
+ }		
+ 
+-function rscanpath($base='', &$data) {
++function rscanpath($base='', &$data=array()) {
+   if (!is_dir($base) || !is_readable($base)) return $data;
+   $array = array_diff(scandir($base), array('.', '..')); 
+   foreach($array as $value) : 
+@@ -326,7 +326,7 @@ function rscanpath($base='', &$data) {
+ }		
+ 
+ 
+-function rscandir_php($base='', &$exclude_dirs, &$data) {
++function rscandir_php($base='', &$exclude_dirs=array(), &$data=array()) {
+   if (!is_dir($base) || !is_readable($base)) return $data;
+   $array = array_diff(scandir($base), array('.', '..')); 
+   foreach($array as $value) : 
+@@ -2556,6 +2556,10 @@ function csp_self_script_protection_head() {
+ 	if (preg_match_all("/<script[^>]*>([\s\S]*?)<\/script>/i", $content, $scripts)) {	
+ 		$num = count($scripts[0]);
+ 		for($i=0; $i<$num; $i++) {
++            // WordPress emits non-executable JSON script elements (for example emoji settings).
++            if (preg_match('/<script\b[^>]*\btype=["\'](?:application\/(?:ld\+)?json|importmap|speculationrules)["\']/i', $scripts[0][$i])) {
++                continue;
++            }
+ 			if (empty($scripts[1][$i])) {
+ 				//url based scripts - mark as dirty if required
+ 				preg_match("/src=[\"']([^\"^']*\.js|[^\"^']*\.php)(\?[^\"^']*[\"']|[\"'])/", $scripts[0][$i], $url);
+@@ -2608,6 +2612,10 @@ function csp_self_script_protection_footer() {
+ 	if (preg_match_all("/<script[^>]*>([\s\S]*?)<\/script>/i", $content, $scripts)) {	
+ 		$num = count($scripts[0]);
+ 		for($i=0; $i<$num; $i++) {
++            // WordPress emits non-executable JSON script elements (for example emoji settings).
++            if (preg_match('/<script\b[^>]*\btype=["\'](?:application\/(?:ld\+)?json|importmap|speculationrules)["\']/i', $scripts[0][$i])) {
++                continue;
++            }
+ 			if (empty($scripts[1][$i])) {
+ 				//url based scripts - mark as dirty if required
+ 				preg_match("/src=[\"']([^\"^']*\.js|[^\"^']*\.php)(\?[^\"^']*[\"']|[\"'])/", $scripts[0][$i], $url);
+@@ -2685,7 +2693,7 @@ function csp_self_script_protection_footer() {
+ 		) {
+ 			$.post("<?php echo CSP_PO_ADMIN_URL.'/admin-ajax.php' ?>", { "action" : "csp_self_protection_result" , "data" :  csp_self_protection }, function(data) {
+ 				$('#csp-wrap-main h2').after(data);
+-				$('.self-protection-details').live('click', function(event) {
++				$(document).on('click', '.self-protection-details', function(event) {
+ 					event.preventDefault();
+ 					$('#self-protection-details').toggle();
+ 				});
+@@ -5199,7 +5207,7 @@ jQuery(document).ready(function() {
+ 	<?php global $wp_version; if (version_compare($wp_version, '3.3', '<')) : ?>
+ 	jQuery('.question-help').hide();
+ 	<?php else : ?>
+-	jQuery('.question-help').live('click', function(event) {
++	jQuery(document).on('click', '.question-help', function(event) {
+ 		event.preventDefault();
+ 		window.scrollTo(0,0);
+ 		jQuery('#tab-link-'+jQuery(this).attr('rel')+' a').trigger('click');
+diff --git a/wp-content/plugins/codestyling-localization/includes/class.parser.php b/wp-content/plugins/codestyling-localization/includes/class.parser.php
+index e0e4da3..4a2ed56 100644
+--- a/wp-content/plugins/codestyling-localization/includes/class.parser.php
++++ b/wp-content/plugins/codestyling-localization/includes/class.parser.php
+@@ -6,6 +6,14 @@ else
+ 	    define('T_DOC_COMMENT', T_ML_COMMENT);
+ 
+ class csp_l10n_parser {
++    public $basedir, $buildin_functions, $component_type, $filename;
++    public $is_new_kernel_translation, $l10n_domains, $l10n_functions, $l10n_regular;
++    public $regexp_wp_msfiles, $textdomain;
++
++    function __construct($basedir, $textdomain, $do_gettext=true, $do_domains=false) {
++        $this->csp_l10n_parser($basedir, $textdomain, $do_gettext, $do_domains);
++    }
++
+ 	
+ 	function csp_l10n_parser($basedir, $textdomain, $do_gettext = true, $do_domains=false) {
+ 		$domains = array(
+@@ -116,7 +124,7 @@ class csp_l10n_parser {
+ 					}
+ 				} elseif (T_CONSTANT_ENCAPSED_STRING == $id) {
+ 					if ($in_func && $args_started) {
+-						if ($text{0} == '"') {
++						if ($text[0] == '"') {
+ 							$text = substr($text, 1, strlen($text)-2);
+ 							$text = str_replace('\"', '"', $text);
+ 							$text = str_replace("\\$", "$", $text);
+@@ -141,7 +149,7 @@ class csp_l10n_parser {
+ 						
+ 						if ($cur_argc == 0) $cur_match_line = $line_number;
+ 					}elseif($in_not_gettext) {
+-						if ($text{0} == '"') {
++						if ($text[0] == '"') {
+ 							$text = trim($text, '"');
+ 							$text = str_replace('\"', '"', $text);
+ 						}
+@@ -159,7 +167,7 @@ class csp_l10n_parser {
+ 						$token = $text;
+ 					}
+ 				} elseif ((T_ML_COMMENT == $id || T_COMMENT == $id) && preg_match('|/\*\s*(/?WP_I18N_[a-z_]+)\s*\*/|i', $text, $matches)) {
+-					$in_not_gettext = $matches[1]{0} == 'W';
++					$in_not_gettext = $matches[1][0] == 'W';
+ 					if ($in_not_gettext) $cur_not_gettext = 'Not gettexted string '.$matches[1];
+ 					$token = $text;
+ 				} elseif ((T_ML_COMMENT == $id || T_COMMENT == $id) && preg_match('/\*\s(translators:.*)\*/i', $text, $matches)) {
+diff --git a/wp-content/plugins/codestyling-localization/includes/idna_convert.class.php b/wp-content/plugins/codestyling-localization/includes/idna_convert.class.php
+index 7fa5dc1..2c0d57f 100644
+--- a/wp-content/plugins/codestyling-localization/includes/idna_convert.class.php
++++ b/wp-content/plugins/codestyling-localization/includes/idna_convert.class.php
+@@ -52,6 +52,8 @@
+  */
+ class idna_convert
+ {
++    public $slast;
++
+     // NP See below
+ 
+     // Internal settings, do not mess with them
+@@ -418,7 +420,7 @@ class idna_convert
+         $delim_pos = strrpos($encoded, '-');
+         if ($delim_pos > self::byteLength($this->_punycode_prefix)) {
+             for ($k = self::byteLength($this->_punycode_prefix); $k < $delim_pos; ++$k) {
+-                $decoded[] = ord($encoded{$k});
++                $decoded[] = ord($encoded[$k]);
+             }
+         }
+         $deco_len = count($decoded);
+@@ -432,7 +434,7 @@ class idna_convert
+ 
+         for ($enco_idx = ($delim_pos) ? ($delim_pos + 1) : 0; $enco_idx < $enco_len; ++$deco_len) {
+             for ($old_idx = $idx, $w = 1, $k = $this->_base; 1 ; $k += $this->_base) {
+-                $digit = $this->_decode_digit($encoded{$enco_idx++});
++                $digit = $this->_decode_digit($encoded[$enco_idx++]);
+                 $idx += $digit * $w;
+                 $t = ($k <= $bias) ? $this->_tmin :
+                         (($k >= $bias + $this->_tmax) ? $this->_tmax : ($k - $bias));
+@@ -823,7 +825,7 @@ class idna_convert
+         $mode = 'next';
+         $test = 'none';
+         for ($k = 0; $k < $inp_len; ++$k) {
+-            $v = ord($input{$k}); // Extract byte from input string
++            $v = ord($input[$k]); // Extract byte from input string
+             if ($v < 128) { // We found an ASCII char - put into stirng as is
+                 $output[$out_len] = $v;
+                 ++$out_len;
+@@ -954,7 +956,7 @@ class idna_convert
+                 $out_len++;
+                 $output[$out_len] = 0;
+             }
+-            $output[$out_len] += ord($input{$i}) << (8 * (3 - ($i % 4) ) );
++            $output[$out_len] += ord($input[$i]) << (8 * (3 - ($i % 4) ) );
+         }
+         return $output;
+     }
+@@ -971,7 +973,7 @@ class idna_convert
+         if (self::$_mb_string_overload) {
+             return mb_strlen($string, '8bit');
+         }
+-        return strlen((binary) $string);
++        return strlen((string) $string);
+     }
+ 
+     /**
+diff --git a/wp-content/plugins/easy-logo-slider/init.php b/wp-content/plugins/easy-logo-slider/init.php
+index cb971e8..541a45f 100644
+--- a/wp-content/plugins/easy-logo-slider/init.php
++++ b/wp-content/plugins/easy-logo-slider/init.php
+@@ -280,7 +280,7 @@ add_shortcode('jw_easy_logo', 'jw_easy_logo_slider_sht');
+             <p class="jcarousel-pagination"></p>
+ 
+         </div>
+-        <script type='text/javascript'>create_jcarousel('<?php echo trim($select_no).$randomStr;?>');</script>
++        <script type='text/javascript'>create_jcarousel('<?php echo $randomStr;?>');</script>
+     </div>
+   <?php return ob_get_clean();?>
+ 
+diff --git a/wp-content/themes/CherryFramework/admin/options-medialibrary-uploader.php b/wp-content/themes/CherryFramework/admin/options-medialibrary-uploader.php
+index 2cc4139..01c5131 100644
+--- a/wp-content/themes/CherryFramework/admin/options-medialibrary-uploader.php
++++ b/wp-content/themes/CherryFramework/admin/options-medialibrary-uploader.php
+@@ -214,7 +214,7 @@ if ( ! function_exists( 'optionsframework_mlu_get_silentpost' ) ) {
+ 			$_posts = $wpdb->get_row( $query );
+ 			
+ 			// If we've got a post, loop through and get it's ID.
+-			if ( count( $_posts ) ) {
++			if ( ! empty( $_posts->ID ) ) {
+ 				$_id = $_posts->ID;
+ 			} else {
+ 			
+diff --git a/wp-content/themes/CherryFramework/includes/less-compile.php b/wp-content/themes/CherryFramework/includes/less-compile.php
+index ed38da4..167f335 100644
+--- a/wp-content/themes/CherryFramework/includes/less-compile.php
++++ b/wp-content/themes/CherryFramework/includes/less-compile.php
+@@ -119,7 +119,10 @@ add_action('optionsframework_after_validate', 'clean_less_cache');
+  * @param  string $inputFile  path to the less (input) file
+  * @param  string $outputFile path to the css (output) file
+  */
+-function auto_less_compile( $inputFile, $outputFile ) {
++function auto_less_compile( $inputFile, $outputFile ) {
++	// Some distributed child themes contain only precompiled CSS.
++	// Never replace those assets with an empty compilation.
++	if ( ! is_readable( $inputFile ) || filesize( $inputFile ) === 0 ) return;
+ 	global $variablesArray;
+ 
+ 	cherryVariables();
+@@ -129,7 +132,11 @@ function auto_less_compile( $inputFile, $outputFile ) {
+ 	$cacheFile = $inputFile.".cache";
+ 
+ 	if ( file_exists( $cacheFile ) ) {
+-		$cache = unserialize( file_get_contents( $cacheFile ) );
++		$cache = unserialize( file_get_contents( $cacheFile ) );
++		// Cached source paths belong to the installation that created them.
++		if ( is_array( $cache ) && isset( $cache['root'] ) && str_replace( '\\', '/', $cache['root'] ) !== str_replace( '\\', '/', $inputFile ) ) {
++			$cache = $inputFile;
++		}
+ 	} else {
+ 		$cache = $inputFile;
+ 	}
+diff --git a/wp-content/themes/CherryFramework/includes/lessc.inc.php b/wp-content/themes/CherryFramework/includes/lessc.inc.php
+index 411ca2f..16310f7 100644
+--- a/wp-content/themes/CherryFramework/includes/lessc.inc.php
++++ b/wp-content/themes/CherryFramework/includes/lessc.inc.php
+@@ -38,6 +38,8 @@
+  * handling things like indentation.
+  */
+ class lessc {
++    public $_parseFile, $allParsedFiles, $env, $formatter, $formatterName, $parser, $scope;
++
+ 	static public $VERSION = "v0.3.9";
+ 	static protected $TRUE = array("keyword", "true");
+ 	static protected $FALSE = array("keyword", "false");
+@@ -594,7 +596,7 @@ class lessc {
+ 
+ 		// check for a rest
+ 		$last = end($args);
+-		if ($last[0] == "rest") {
++		if ($last !== false && $last[0] == "rest") {
+ 			$rest = array_slice($values, count($args) - 1);
+ 			$this->set($last[1], $this->reduce(array("list", " ", $rest)));
+ 		}
+@@ -654,7 +656,7 @@ class lessc {
+ 					if ($suffix !== null &&
+ 						$subProp[0] == "assign" &&
+ 						is_string($subProp[1]) &&
+-						$subProp[1]{0} != $this->vPrefix)
++						$subProp[1][0] != $this->vPrefix)
+ 					{
+ 						$subProp[2] = array(
+ 							'list', ' ',
+@@ -682,7 +684,7 @@ class lessc {
+ 		case "comment":
+ 			$out->lines[] = $prop[1];
+ 			break;
+-		case "import";
++		case "import":
+ 			list(, $importPath, $importId) = $prop;
+ 			$importPath = $this->reduce($importPath);
+ 
+@@ -1333,7 +1335,7 @@ class lessc {
+ 				$width = strlen($colorStr) == 3 ? 16 : 256;
+ 
+ 				for ($i = 3; $i > 0; $i--) { // 3 2 1
+-					$t = $num % $width;
++					$t = (int) $num % $width;
+ 					$num /= $width;
+ 
+ 					$c[$i] = $t * (256/$width) + $t * floor(16/$width);
+@@ -1410,7 +1412,7 @@ class lessc {
+ 		}
+ 
+ 		// type based operators
+-		$fname = "op_${ltype}_${rtype}";
++		$fname = "op_{$ltype}_{$rtype}";
+ 		if (is_callable(array($this, $fname))) {
+ 			$out = $this->$fname($op, $left, $right);
+ 			if (!is_null($out)) return $out;
+@@ -1621,7 +1623,7 @@ class lessc {
+ 		$this->pushEnv();
+ 		$parser = new lessc_parser($this, __METHOD__);
+ 		foreach ($args as $name => $strValue) {
+-			if ($name{0} != '@') $name = '@'.$name;
++			if ($name[0] != '@') $name = '@'.$name;
+ 			$parser->count = 0;
+ 			$parser->buffer = (string)$strValue;
+ 			if (!$parser->propertyValue($value)) {
+@@ -2035,6 +2037,8 @@ class lessc {
+ // responsible for taking a string of LESS code and converting it into a
+ // syntax tree
+ class lessc_parser {
++    public $buffer, $count, $currentProperty, $eatWhiteDefault, $env, $inExp, $lessc, $line, $seenComments, $sourceName, $writeComments;
++
+ 	static protected $nextBlockId = 0; // used to uniquely identify blocks
+ 
+ 	static protected $precedence = array(
+@@ -2278,7 +2282,7 @@ class lessc_parser {
+ 				$hidden = true;
+ 				if (!isset($block->args)) {
+ 					foreach ($block->tags as $tag) {
+-						if (!is_string($tag) || $tag{0} != $this->lessc->mPrefix) {
++						if (!is_string($tag) || $tag[0] != $this->lessc->mPrefix) {
+ 							$hidden = false;
+ 							break;
+ 						}
+@@ -2332,7 +2336,7 @@ class lessc_parser {
+ 	protected function fixTags($tags) {
+ 		// move @ tags out of variable namespace
+ 		foreach ($tags as &$tag) {
+-			if ($tag{0} == $this->lessc->vPrefix)
++			if ($tag[0] == $this->lessc->vPrefix)
+ 				$tag[0] = $this->lessc->mPrefix;
+ 		}
+ 		return $tags;
+@@ -3062,7 +3066,7 @@ class lessc_parser {
+ 	protected function end() {
+ 		if ($this->literal(';')) {
+ 			return true;
+-		} elseif ($this->count == strlen($this->buffer) || $this->buffer{$this->count} == '}') {
++		} elseif ($this->count == strlen($this->buffer) || $this->buffer[$this->count] == '}') {
+ 			// if there is end of file or a closing block next then we don't need a ;
+ 			return true;
+ 		}
+@@ -3196,7 +3200,7 @@ class lessc_parser {
+ 		if ($eatWhitespace === null) $eatWhitespace = $this->eatWhiteDefault;
+ 
+ 		$r = '/'.$regex.($eatWhitespace && !$this->writeComments ? '\s*' : '').'/Ais';
+-		if (preg_match($r, $this->buffer, $out, null, $this->count)) {
++		if (preg_match($r, $this->buffer, $out, 0, $this->count)) {
+ 			$this->count += strlen($out[0]);
+ 			if ($eatWhitespace && $this->writeComments) $this->whitespace();
+ 			return true;
+@@ -3208,7 +3212,7 @@ class lessc_parser {
+ 	protected function whitespace() {
+ 		if ($this->writeComments) {
+ 			$gotWhite = false;
+-			while (preg_match(self::$whitePattern, $this->buffer, $m, null, $this->count)) {
++			while (preg_match(self::$whitePattern, $this->buffer, $m, 0, $this->count)) {
+ 				if (isset($m[1]) && empty($this->commentsSeen[$this->count])) {
+ 					$this->append(array("comment", $m[1]));
+ 					$this->commentsSeen[$this->count] = true;
+@@ -3227,7 +3231,7 @@ class lessc_parser {
+ 	protected function peek($regex, &$out = null, $from=null) {
+ 		if (is_null($from)) $from = $this->count;
+ 		$r = '/'.$regex.'/Ais';
+-		$result = preg_match($r, $this->buffer, $out, null, $from);
++		$result = preg_match($r, $this->buffer, $out, 0, $from);
+ 
+ 		return $result;
+ 	}
+@@ -3356,6 +3360,8 @@ class lessc_parser {
+ }
+ 
+ class lessc_formatter_classic {
++    public $indentLevel;
++
+ 	public $indentChar = "  ";
+ 
+ 	public $break = "\n";
+diff --git a/wp-content/themes/CherryFramework/includes/theme-teammeta.php b/wp-content/themes/CherryFramework/includes/theme-teammeta.php
+index f68e50d..0bdabba 100644
+--- a/wp-content/themes/CherryFramework/includes/theme-teammeta.php
++++ b/wp-content/themes/CherryFramework/includes/theme-teammeta.php
+@@ -205,7 +205,7 @@ function my_social_networks( $post, $metabox ) {
+ 				jQuery('input[name="fields_id"]').val(fields_id_value);
+ 				return !1;
+ 			});
+-			jQuery('.delete_network').live('click', function(){
++			jQuery(document).on('click', '.delete_network', function(){
+ 				var item_name = jQuery(this).attr('name')
+ 				,	fields_id_value_array = jQuery('input[name="fields_id"]').val().split(" ")
+ 				,	delete_id = Number(item_name.replace(/\D+/g,""))
+diff --git a/wp-content/themes/CherryFramework/js/jquery.custom.admin.js b/wp-content/themes/CherryFramework/js/jquery.custom.admin.js
+index 80a0c8e..4ed7fb6 100644
+--- a/wp-content/themes/CherryFramework/js/jquery.custom.admin.js
++++ b/wp-content/themes/CherryFramework/js/jquery.custom.admin.js
+@@ -2,6 +2,6 @@ var hide_options;
+ jQuery(document).ready(function(){function l(c){"Audio"===c?k(m):"Video"===c?k(n):k(p)}function k(c){p.css("display","none");n.css("display","none");m.css("display","none");c.css("display","block")}function h(c){d.css("display","none");a.css("display","none");e.css("display","none");f.css("display","none");g.css("display","none");c.css("display","block")}var j=jQuery("#tz_portfolio_type"),p=jQuery("#tz-meta-box-portfolio-image"),n=jQuery("#tz-meta-box-portfolio-video"),m=jQuery("#tz-meta-box-portfolio-audio");currentType=
+ j.val();l(currentType);j.change(function(){currentType=jQuery(this).val();l(currentType)});var a=jQuery("#tz-meta-box-quote"),j=jQuery("#post-format-quote");a.css("display","none");var g=jQuery("#tz-meta-box-image"),q=jQuery("#post-format-image");g.css("display","none");var e=jQuery("#tz-meta-box-link"),r=jQuery("#post-format-link");e.css("display","none");var f=jQuery("#tz-meta-box-audio"),s=jQuery("#post-format-audio");f.css("display","none");var d=jQuery("#tz-meta-box-video"),t=jQuery("#post-format-video");
+ d.css("display","none");jQuery("#post-formats-select input").change(function(){"quote"==jQuery(this).val()?(a.css("display","block"),h(a)):"link"==jQuery(this).val()?(e.css("display","block"),h(e)):"audio"==jQuery(this).val()?(f.css("display","block"),h(f)):"video"==jQuery(this).val()?(d.css("display","block"),h(d)):"image"==jQuery(this).val()?(g.css("display","block"),h(g)):(a.css("display","none"),d.css("display","none"),e.css("display","none"),f.css("display","none"),g.css("display","none"))});
+-j.is(":checked")&&a.css("display","block");r.is(":checked")&&e.css("display","block");s.is(":checked")&&f.css("display","block");t.is(":checked")&&d.css("display","block");q.is(":checked")&&g.css("display","block");var b=jQuery("#page_template").val();"page-Portfolio2Cols-filterable.php"==b||"page-Portfolio3Cols-filterable.php"==b||"page-Portfolio4Cols-filterable.php"==b?jQuery("#tz-meta-box-category").show():jQuery("#tz-meta-box-category").hide();jQuery("#page_template").live("change",function(){b=
+-jQuery(this).val();"page-Portfolio2Cols-filterable.php"==b||"page-Portfolio3Cols-filterable.php"==b||"page-Portfolio4Cols-filterable.php"==b?jQuery("#tz-meta-box-category").show():jQuery("#tz-meta-box-category").hide()});jQuery("#framework-icon_type").live("change",function(){hide_options(jQuery(this).val(),jQuery(this))});hide_options=function(c,b){var d=c.toLocaleLowerCase().replace(" ","_"),a=b.parents("#options-table");"images"==d?(jQuery(".tupe_font_icon",a).parents("tr").css({display:"none"}),
++j.is(":checked")&&a.css("display","block");r.is(":checked")&&e.css("display","block");s.is(":checked")&&f.css("display","block");t.is(":checked")&&d.css("display","block");q.is(":checked")&&g.css("display","block");var b=jQuery("#page_template").val();"page-Portfolio2Cols-filterable.php"==b||"page-Portfolio3Cols-filterable.php"==b||"page-Portfolio4Cols-filterable.php"==b?jQuery("#tz-meta-box-category").show():jQuery("#tz-meta-box-category").hide();jQuery(document).on("change","#page_template",function(){b=
++jQuery(this).val();"page-Portfolio2Cols-filterable.php"==b||"page-Portfolio3Cols-filterable.php"==b||"page-Portfolio4Cols-filterable.php"==b?jQuery("#tz-meta-box-category").show():jQuery("#tz-meta-box-category").hide()});jQuery(document).on("change","#framework-icon_type",function(){hide_options(jQuery(this).val(),jQuery(this))});hide_options=function(c,b){var d=c.toLocaleLowerCase().replace(" ","_"),a=b.parents("#options-table");"images"==d?(jQuery(".tupe_font_icon",a).parents("tr").css({display:"none"}),
+ jQuery(".tupe_images",a).parents("tr").css({display:"table-row"})):(jQuery(".tupe_images",a).parents("tr").css({display:"none"}),jQuery(".tupe_font_icon",a).parents("tr").css({display:"table-row"}))}});
+\ No newline at end of file

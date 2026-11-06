@@ -30,6 +30,12 @@ Coverage includes all registered Cherry shortcodes, all 13 widget forms, saving 
 
 See [the compatibility reference](.agents/skills/compatibility/references/php-wordpress.md) for implementation details and [the verification record](.agents/skills/compatibility/references/audits/2026-11-06.md) for exact versions, evidence and limits.
 
+## Existing LAUTO site
+
+The `wordpress_lauto` installation keeps its existing CherryFramework parent and `theme47828` child theme. Its separate theme/plugin compatibility fixes are maintained in [compat/lauto/php8.patch](compat/lauto/php8.patch), with [operating instructions](.agents/skills/compatibility/references/lauto-site.md) and [site verification](.agents/skills/compatibility/references/audits/2026-11-06-lauto.md). These site-specific files are not automatically applied by Cherry Plugin.
+
+Run `php compat/lauto/check.php /path/to/wordpress` to check the patched compiler, IDNA conversion and translation scanner. Build delivery ZIPs from a matching patched installation with `python compat/lauto/package.py --site /path/to/wordpress --output /path/to/delivery`. The builder verifies the nine site files against its manifest and excludes database/configuration/session files. The complete update ZIP supplements the plugin with these existing-component fixes; retain the site's themes, media and database.
+
 #### v1.2.9 ####
 
 * FIX: PHP 8 parse errors, removed dynamic-function calls and missing-value warnings.

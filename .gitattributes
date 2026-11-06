@@ -1,0 +1,2 @@
+# Keep the original third-party line endings and whitespace in patch context.
+compat/lauto/php8.patch -text -whitespace

@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-06",
+  "site_wordpress": "7.0.8",
+  "site_php": "8.4.12",
+  "component_checks": [
+    {
+      "php_branch": "8.0",
+      "result": "passed"
+    },
+    {
+      "php_branch": "8.1",
+      "result": "passed"
+    },
+    {
+      "php_branch": "8.2",
+      "result": "passed"
+    },
+    {
+      "php_branch": "8.3",
+      "result": "passed"
+    },
+    {
+      "php_branch": "8.4",
+      "result": "passed"
+    },
+    {
+      "php_branch": "8.5",
+      "result": "passed"
+    }
+  ],
+  "published_pages_http_200": 73,
+  "strict_shortcode_pages": 8,
+  "admin_pages_without_php_or_js_errors": 8,
+  "visible_home_text_identical": true,
+  "desktop_screenshot_size": [
+    1440,
+    2083
+  ],
+  "mobile_screenshot_size": [
+    390,
+    3646
+  ],
+  "desktop_mean_pixel_difference_out_of_255": 0.018272034636652976,
+  "mobile_mean_pixel_difference_out_of_255": 0.04871560450276852,
+  "missing_media_paths_before_and_after": 18,
+  "notes": [
+    "PHP 7.4 original components used only in an isolated read-only comparison container.",
+    "Existing local missing media affected both versions.",
+    "Production forms and email were not submitted."
+  ]
+}
